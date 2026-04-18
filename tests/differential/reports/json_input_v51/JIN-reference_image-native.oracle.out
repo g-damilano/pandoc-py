@@ -1,0 +1,11 @@
+[ Para
+    [ Str "alpha"
+    , Space
+    , Image
+        ( "" , [] , [] )
+        [ Str "alt" , Space , Str "text" ]
+        ( "img.png" , "Img Title" )
+    , Space
+    , Str "delta"
+    ]
+]

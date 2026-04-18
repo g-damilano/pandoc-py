@@ -1,0 +1,46 @@
+[
+  {
+    "fixture": "atx_heading",
+    "status": "pass"
+  },
+  {
+    "fixture": "autolink_paragraph",
+    "status": "pass"
+  },
+  {
+    "fixture": "block_quote_inline",
+    "status": "pass"
+  },
+  {
+    "fixture": "bullet_list",
+    "status": "pass"
+  },
+  {
+    "fixture": "citation_multi",
+    "status": "pass"
+  },
+  {
+    "fixture": "citation_simple",
+    "status": "pass"
+  },
+  {
+    "fixture": "code_span_paragraph",
+    "status": "pass"
+  },
+  {
+    "fixture": "definition_list_simple",
+    "status": "pass"
+  },
+  {
+    "fixture": "display_math_block",
+    "status": "pass"
+  },
+  {
+    "fixture": "email_autolink_paragraph",
+    "status": "pass"
+  },
+  {
+    "fixture": "fenced_code_attrs",
+    "status": "pass"
+  }
+]

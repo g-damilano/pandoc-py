@@ -1,0 +1,1 @@
+[OrderedList (1,Decimal,DefaultDelim) [[Plain [Str "outer"],BulletList [[Plain [Str "inner",Space,Str "a"]],[Plain [Str "inner",Space,Str "b"]]]],[Plain [Str "done"]]]]

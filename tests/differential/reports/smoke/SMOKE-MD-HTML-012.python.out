@@ -1,0 +1,14 @@
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Emph</th>
+<th style="text-align: right;">Link</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><em>a</em></td>
+<td style="text-align: right;"><a href="https://example.com">b</a></td>
+</tr>
+</tbody>
+</table>

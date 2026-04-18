@@ -1,0 +1,4 @@
+<ul class="task-list">
+<li><label><input type="checkbox" />one</label></li>
+<li><label><input type="checkbox" checked="" />two</label></li>
+</ul>

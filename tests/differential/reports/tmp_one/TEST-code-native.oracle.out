@@ -1,0 +1,8 @@
+[ Para
+    [ Str "alpha"
+    , Space
+    , Code ( "" , [] , [] ) "beta gamma"
+    , Space
+    , Str "delta"
+    ]
+]

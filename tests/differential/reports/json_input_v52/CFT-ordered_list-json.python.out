@@ -1,0 +1,1 @@
+{"pandoc-api-version": [1, 23, 1], "meta": {}, "blocks": [{"t": "OrderedList", "c": [[3, {"t": "Decimal"}, {"t": "Period"}], [[{"t": "Plain", "c": [{"t": "Str", "c": "alpha"}]}], [{"t": "Plain", "c": [{"t": "Str", "c": "beta"}]}]]]}]}

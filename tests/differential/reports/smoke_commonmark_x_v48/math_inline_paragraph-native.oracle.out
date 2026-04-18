@@ -1,0 +1,8 @@
+[ Para
+    [ Str "alpha"
+    , Space
+    , Math InlineMath "x+y"
+    , Space
+    , Str "beta"
+    ]
+]

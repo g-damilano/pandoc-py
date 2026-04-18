@@ -1,0 +1,7 @@
+[ BulletList
+    [ [ Plain [ Str "alpha" ] ]
+    , [ Plain
+          [ Str "beta" , Space , Code ( "" , [] , [] ) "gamma" ]
+      ]
+    ]
+]

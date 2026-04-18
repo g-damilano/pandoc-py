@@ -1,0 +1,9 @@
+[ OrderedList
+    ( 1 , Decimal , Period )
+    [ [ Para [ Str "first" , SoftBreak , Str "continued" ]
+      , OrderedList
+          ( 1 , Decimal , Period ) [ [ Plain [ Str "inner" ] ] ]
+      ]
+    , [ Para [ Str "second" ] ]
+    ]
+]

@@ -1,0 +1,33 @@
+{
+  "fixture_id": "SMOKE-MD-JSON-053",
+  "input_format": "markdown",
+  "output_format": "json",
+  "comparison_level": "structured_json",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/work_v27/pandoc_v26/tests/fixtures/smoke/raw_inline_tex_command.md",
+    "-f",
+    "markdown",
+    "-t",
+    "json"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/mnt/data/work_v27/pandoc_v26/scripts/run_python_cli.py",
+    "/mnt/data/work_v27/pandoc_v26/tests/fixtures/smoke/raw_inline_tex_command.md",
+    "--from",
+    "markdown",
+    "--to",
+    "json"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.27",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Structured JSON match.",
+  "oracle_stdout_path": "/mnt/data/work_v27/pandoc_v26/tests/differential/reports/smoke/SMOKE-MD-JSON-053.oracle.out",
+  "python_stdout_path": "/mnt/data/work_v27/pandoc_v26/tests/differential/reports/smoke/SMOKE-MD-JSON-053.python.out",
+  "oracle_stderr_path": "/mnt/data/work_v27/pandoc_v26/tests/differential/reports/smoke/SMOKE-MD-JSON-053.oracle.err",
+  "python_stderr_path": "/mnt/data/work_v27/pandoc_v26/tests/differential/reports/smoke/SMOKE-MD-JSON-053.python.err"
+}

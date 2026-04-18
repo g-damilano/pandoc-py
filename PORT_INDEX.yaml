@@ -1,0 +1,66 @@
+program:
+  name: pandoc_python_port
+  mode: verification_first_port
+  oracle: pinned_pandoc_cli
+  source_of_truth:
+    roadmap: docs/00_program/ROADMAP.md
+    operating_model: docs/00_program/OPERATING_MODEL.md
+    capability_matrix: trackers/CAPABILITY_MATRIX.csv
+    haskell_inventory: trackers/HASKELL_MODULE_INVENTORY.csv
+    haskell_capability_seed: trackers/HASKELL_CAPABILITY_SEED.csv
+    implementation_log: trackers/IMPLEMENTATION_LOG.md
+    verification_status: trackers/VERIFICATION_STATUS.md
+    next_iteration: trackers/NEXT_ITERATION.md
+  mandatory_read_order:
+    - docs/00_program/AI_START_HERE.md
+    - docs/00_program/ITERATION_PROTOCOL.md
+    - docs/00_program/OPERATING_MODEL.md
+    - docs/01_architecture/HASKELL_REPO_INVENTORY.md
+    - docs/01_architecture/HASKELL_REPO_SCOPE_GAPS.md
+    - docs/03_contracts/CAPABILITY_CONTRACT.md
+    - docs/03_contracts/VERIFICATION_CONTRACT.md
+    - trackers/NEXT_ITERATION.md
+    - trackers/CAPABILITY_MATRIX.csv
+    - trackers/HASKELL_CAPABILITY_SEED.csv
+  iteration_cycle:
+    - intake_current_state
+    - verify_scope_baseline_against_haskell_inventory
+    - select_single_coherent_slice
+    - map_haskell_to_python_targets
+    - define_acceptance_and_verification
+    - implement_fail_closed
+    - run_unit_and_differential_checks
+    - log_divergences
+    - update_trackers
+    - publish_next_iteration_brief
+  completion_states:
+    - not_started
+    - mapped_only
+    - skeleton_only
+    - partially_implemented
+    - implemented_unverified
+    - verified_smoke
+    - verified_standard
+    - verified_extended
+    - known_divergence
+    - blocked
+    - deferred
+    - done
+  no_go_rules:
+    - do_not_mark_done_without_oracle_verification
+    - do_not_hide_mismatches_outside_divergence_log
+    - do_not_expand_scope_without_capability_rows
+    - do_not_change_normalization_policy_silently
+    - do_not_assume_pandoc_main_contains_all_ast_sources
+
+  control_plane:
+    validator: scripts/validate_control_plane.py
+    status_report: trackers/CONTROL_PLANE_STATUS.md
+    work_packet_template: trackers/WORK_PACKET_TEMPLATE.md
+    iteration_state: trackers/ITERATION_STATE.yaml
+    conversion_progress: trackers/CONVERSION_PROGRESS.md
+  release_gates:
+    - control_plane_validates_cleanly
+    - capability_matrix_present_and_non_empty
+    - next_iteration_non_empty
+    - package_version_consistent_with_verification_status

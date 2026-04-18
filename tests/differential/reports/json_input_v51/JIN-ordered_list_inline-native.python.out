@@ -1,0 +1,1 @@
+[OrderedList (3,Decimal,Period) [[Plain [Str "alpha",Space,Emph [Str "beta"]]],[Plain [Str "gamma",Space,Link ("",[],[]) [Str "delta"] ("https://example.com",""),Space,Code ("",[],[]) "code"]]]]

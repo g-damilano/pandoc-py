@@ -1,0 +1,11 @@
+[ Para
+    [ Str "alpha"
+    , Space
+    , Link
+        ( "" , [] , [] )
+        [ Str "beta" ]
+        ( "https://example.com" , "Title" )
+    , Space
+    , Str "delta"
+    ]
+]

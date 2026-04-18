@@ -1,0 +1,7 @@
+[ Para
+    [ Link
+        ( "x" , [ "c" ] , [ ( "key" , "val" ) ] )
+        [ Str "a" ]
+        ( "https://e.com" , "" )
+    ]
+]

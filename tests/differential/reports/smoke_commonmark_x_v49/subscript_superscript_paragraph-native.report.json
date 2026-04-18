@@ -1,0 +1,38 @@
+{
+  "fixture_id": "subscript_superscript_paragraph-native",
+  "input_format": "commonmark_x",
+  "output_format": "native",
+  "comparison_level": "roundtrip_native_json",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/fixtures/smoke/subscript_superscript_paragraph.md",
+    "-f",
+    "commonmark_x",
+    "-t",
+    "native",
+    "--wrap=none"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/scripts/run_python_cli.py",
+    "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/fixtures/smoke/subscript_superscript_paragraph.md",
+    "--from",
+    "commonmark_x",
+    "--to",
+    "native"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.48",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Native round-trip JSON match.",
+  "oracle_stdout_path": "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/differential/reports/smoke_commonmark_x_v49/subscript_superscript_paragraph-native.oracle.out",
+  "python_stdout_path": "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/differential/reports/smoke_commonmark_x_v49/subscript_superscript_paragraph-native.python.out",
+  "oracle_stderr_path": "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/differential/reports/smoke_commonmark_x_v49/subscript_superscript_paragraph-native.oracle.err",
+  "python_stderr_path": "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/differential/reports/smoke_commonmark_x_v49/subscript_superscript_paragraph-native.python.err",
+  "oracle_native_reparse_exit_code": 0,
+  "python_native_reparse_exit_code": 0,
+  "oracle_native_reparse_error": "",
+  "python_native_reparse_error": ""
+}

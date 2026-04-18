@@ -1,0 +1,1 @@
+before \LaTeX{} after

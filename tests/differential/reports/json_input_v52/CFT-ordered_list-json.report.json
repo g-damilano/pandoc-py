@@ -1,0 +1,33 @@
+{
+  "fixture_id": "CFT-ordered_list-json",
+  "input_format": "json",
+  "output_format": "json",
+  "comparison_level": "structured_json",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/repo_v52/repo/tests/fixtures/json_input_screen/ordered_list.json",
+    "-f",
+    "json",
+    "-t",
+    "json"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python3",
+    "/mnt/data/repo_v52/repo/scripts/run_python_cli.py",
+    "/mnt/data/repo_v52/repo/tests/fixtures/json_input_screen/ordered_list.json",
+    "--from",
+    "json",
+    "--to",
+    "json"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.51",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Structured JSON match.",
+  "oracle_stdout_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_v52/CFT-ordered_list-json.oracle.out",
+  "python_stdout_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_v52/CFT-ordered_list-json.python.out",
+  "oracle_stderr_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_v52/CFT-ordered_list-json.oracle.err",
+  "python_stderr_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_v52/CFT-ordered_list-json.python.err"
+}

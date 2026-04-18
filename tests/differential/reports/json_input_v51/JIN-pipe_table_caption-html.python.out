@@ -1,0 +1,15 @@
+<table>
+<caption>Cap</caption>
+<thead>
+<tr class="header">
+<th>A</th>
+<th>B</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>

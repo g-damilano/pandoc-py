@@ -1,0 +1,1 @@
+[Para [Cite [Citation { citationId = "doe", citationPrefix = [], citationSuffix = [], citationMode = NormalCitation, citationNoteNum = 1, citationHash = 0 }] [Str "[@doe]"]],Para [Cite [Citation { citationId = "roe", citationPrefix = [], citationSuffix = [], citationMode = NormalCitation, citationNoteNum = 2, citationHash = 0 }] [Str "[@roe]"]]]

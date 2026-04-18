@@ -1,0 +1,36 @@
+{
+  "fixture_id": "FIG-HTML",
+  "input_format": "html",
+  "output_format": "html",
+  "comparison_level": "normalized_html",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/fixtures/smoke_html_input/image_attrs_standalone.html",
+    "-f",
+    "html",
+    "-t",
+    "html",
+    "--mathjax",
+    "--no-highlight",
+    "--wrap=none"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/scripts/run_python_cli.py",
+    "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/fixtures/smoke_html_input/image_attrs_standalone.html",
+    "--from",
+    "html",
+    "--to",
+    "html"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.37",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Normalized HTML match.",
+  "oracle_stdout_path": "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/differential/reports/smoke/FIG-HTML.oracle.out",
+  "python_stdout_path": "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/differential/reports/smoke/FIG-HTML.python.out",
+  "oracle_stderr_path": "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/differential/reports/smoke/FIG-HTML.oracle.err",
+  "python_stderr_path": "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/differential/reports/smoke/FIG-HTML.python.err"
+}

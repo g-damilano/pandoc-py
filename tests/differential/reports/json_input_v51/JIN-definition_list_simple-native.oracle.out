@@ -1,0 +1,9 @@
+[ DefinitionList
+    [ ( [ Str "Term" , Space , Str "1" ]
+      , [ [ Plain [ Str "Definition" , Space , Str "1" ] ] ]
+      )
+    , ( [ Str "Term" , Space , Str "2" ]
+      , [ [ Plain [ Str "Definition" , Space , Str "2" ] ] ]
+      )
+    ]
+]

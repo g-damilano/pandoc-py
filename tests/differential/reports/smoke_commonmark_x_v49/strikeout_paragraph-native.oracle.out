@@ -1,0 +1,8 @@
+[ Para
+    [ Str "alpha"
+    , Space
+    , Strikeout [ Str "beta" , Space , Str "gamma" ]
+    , Space
+    , Str "delta"
+    ]
+]

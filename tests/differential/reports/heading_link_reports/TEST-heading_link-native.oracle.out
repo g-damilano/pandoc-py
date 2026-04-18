@@ -1,0 +1,11 @@
+[ Header
+    1
+    ( "alpha-beta" , [] , [] )
+    [ Str "Alpha"
+    , Space
+    , Link
+        ( "" , [] , [] )
+        [ Str "beta" ]
+        ( "https://example.com" , "" )
+    ]
+]

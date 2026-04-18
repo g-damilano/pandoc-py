@@ -1,0 +1,13 @@
+[ BlockQuote
+    [ Para
+        [ Str "alpha"
+        , Space
+        , Code ( "" , [] , [] ) "beta"
+        , Space
+        , Link
+            ( "" , [] , [] )
+            [ Str "gamma" ]
+            ( "https://example.com" , "" )
+        ]
+    ]
+]

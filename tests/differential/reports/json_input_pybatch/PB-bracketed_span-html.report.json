@@ -1,0 +1,36 @@
+{
+  "fixture_id": "PB-bracketed_span-html",
+  "input_format": "json",
+  "output_format": "html",
+  "comparison_level": "normalized_html",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/repo_v52/repo/tests/fixtures/json_input_screen/bracketed_span.json",
+    "-f",
+    "json",
+    "-t",
+    "html",
+    "--mathjax",
+    "--no-highlight",
+    "--wrap=none"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python3",
+    "/mnt/data/repo_v52/repo/scripts/run_python_cli.py",
+    "/mnt/data/repo_v52/repo/tests/fixtures/json_input_screen/bracketed_span.json",
+    "--from",
+    "json",
+    "--to",
+    "html"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.51",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Normalized HTML match.",
+  "oracle_stdout_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_pybatch/PB-bracketed_span-html.oracle.out",
+  "python_stdout_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_pybatch/PB-bracketed_span-html.python.out",
+  "oracle_stderr_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_pybatch/PB-bracketed_span-html.oracle.err",
+  "python_stderr_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_pybatch/PB-bracketed_span-html.python.err"
+}

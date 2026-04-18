@@ -1,0 +1,38 @@
+{
+  "fixture_id": "MOD-MD-CM-001",
+  "input_format": "markdown",
+  "output_format": "commonmark",
+  "comparison_level": "roundtrip_commonmark_json",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/work_v40/tests/fixtures/smoke_commonmark/autolink_paragraph.md",
+    "-f",
+    "markdown",
+    "-t",
+    "commonmark",
+    "--wrap=none"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/mnt/data/work_v40/scripts/run_python_cli.py",
+    "/mnt/data/work_v40/tests/fixtures/smoke_commonmark/autolink_paragraph.md",
+    "--from",
+    "markdown",
+    "--to",
+    "commonmark"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.40",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "CommonMark round-trip JSON match.",
+  "oracle_stdout_path": "/mnt/data/work_v40/tests/differential/reports/module_tranche/MOD-MD-CM-001.oracle.out",
+  "python_stdout_path": "/mnt/data/work_v40/tests/differential/reports/module_tranche/MOD-MD-CM-001.python.out",
+  "oracle_stderr_path": "/mnt/data/work_v40/tests/differential/reports/module_tranche/MOD-MD-CM-001.oracle.err",
+  "python_stderr_path": "/mnt/data/work_v40/tests/differential/reports/module_tranche/MOD-MD-CM-001.python.err",
+  "oracle_commonmark_reparse_exit_code": 0,
+  "python_commonmark_reparse_exit_code": 0,
+  "oracle_commonmark_reparse_error": "",
+  "python_commonmark_reparse_error": ""
+}

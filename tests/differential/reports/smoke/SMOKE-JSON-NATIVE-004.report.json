@@ -1,0 +1,38 @@
+{
+  "fixture_id": "SMOKE-JSON-NATIVE-004",
+  "input_format": "json",
+  "output_format": "native",
+  "comparison_level": "roundtrip_native_json",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/work_v32/pandoc_python_port_bundle_v32/tests/fixtures/smoke_json/ordered_list_inline.json",
+    "-f",
+    "json",
+    "-t",
+    "native",
+    "--wrap=none"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/mnt/data/work_v32/pandoc_python_port_bundle_v32/scripts/run_python_cli.py",
+    "/mnt/data/work_v32/pandoc_python_port_bundle_v32/tests/fixtures/smoke_json/ordered_list_inline.json",
+    "--from",
+    "json",
+    "--to",
+    "native"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.32",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Native round-trip JSON match.",
+  "oracle_stdout_path": "/mnt/data/work_v32/pandoc_python_port_bundle_v32/tests/differential/reports/smoke/SMOKE-JSON-NATIVE-004.oracle.out",
+  "python_stdout_path": "/mnt/data/work_v32/pandoc_python_port_bundle_v32/tests/differential/reports/smoke/SMOKE-JSON-NATIVE-004.python.out",
+  "oracle_stderr_path": "/mnt/data/work_v32/pandoc_python_port_bundle_v32/tests/differential/reports/smoke/SMOKE-JSON-NATIVE-004.oracle.err",
+  "python_stderr_path": "/mnt/data/work_v32/pandoc_python_port_bundle_v32/tests/differential/reports/smoke/SMOKE-JSON-NATIVE-004.python.err",
+  "oracle_native_reparse_exit_code": 0,
+  "python_native_reparse_exit_code": 0,
+  "oracle_native_reparse_error": "",
+  "python_native_reparse_error": ""
+}

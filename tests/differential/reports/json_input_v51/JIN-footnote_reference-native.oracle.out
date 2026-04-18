@@ -1,0 +1,6 @@
+[ Para
+    [ Str "Alpha"
+    , Note [ Para [ Str "Note" , Space , Str "text" ] ]
+    , Str "."
+    ]
+]

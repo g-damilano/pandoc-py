@@ -1,0 +1,1 @@
+{"pandoc-api-version":[1,23,1],"meta":{},"blocks":[{"t":"Para","c":[{"t":"Span","c":[["",["citation"],[["cites","doe roe"]]],[{"t":"Str","c":"[@doe;"},{"t":"Space"},{"t":"Str","c":"@roe,"},{"t":"Space"},{"t":"Str","c":"pp."},{"t":"Space"},{"t":"Str","c":"1-3]"}]]}]}]}

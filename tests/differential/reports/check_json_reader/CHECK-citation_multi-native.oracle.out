@@ -1,0 +1,29 @@
+[ Para
+    [ Cite
+        [ Citation
+            { citationId = "doe"
+            , citationPrefix = []
+            , citationSuffix = []
+            , citationMode = NormalCitation
+            , citationNoteNum = 1
+            , citationHash = 0
+            }
+        , Citation
+            { citationId = "roe"
+            , citationPrefix = []
+            , citationSuffix = [ Str "," , Space , Str "pp.\160\&1-3" ]
+            , citationMode = NormalCitation
+            , citationNoteNum = 1
+            , citationHash = 0
+            }
+        ]
+        [ Str "[@doe;"
+        , Space
+        , Str "@roe,"
+        , Space
+        , Str "pp."
+        , Space
+        , Str "1-3]"
+        ]
+    ]
+]

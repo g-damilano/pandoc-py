@@ -1,0 +1,20 @@
+current:
+  bundle_version: v54_json_input_markdown_semantic_packet
+  package_version: 0.0.54
+  focus_packet: json_input_markdown_semantic_packet
+  last_completed_log_entry: LOG-0054
+  last_completion_state: verified_smoke
+  oracle_version: pandoc 3.1.11.1
+  active_percentage:
+    implemented_or_better: 84.9
+    smoke_verified_or_better: 84.9
+  active_counts:
+    total_rows: 589
+    implemented_or_better: 500
+    smoke_verified_or_better: 500
+  key_evidence:
+    - trackers/JSON_INPUT_MARKDOWN_SEMANTIC_PACKET_EVIDENCE.md
+    - trackers/JSON_INPUT_SCREEN_CLOSURE_EVIDENCE.md
+    - trackers/JSON_INPUT_CONTINUATION_PACKET_EVIDENCE.md
+    - trackers/JSON_INPUT_BREADTH_PACKET_EVIDENCE.md
+    - trackers/CONVERSION_PROGRESS.md

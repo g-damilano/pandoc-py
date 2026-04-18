@@ -1,0 +1,1 @@
+{"pandoc-api-version":[1,23,1],"meta":{},"blocks":[{"t":"Header","c":[1,["alpha-beta-gamma",[],[]],[{"t":"Str","c":"Alpha"},{"t":"Space"},{"t":"Emph","c":[{"t":"Str","c":"beta"}]},{"t":"Space"},{"t":"Strong","c":[{"t":"Str","c":"gamma"}]}]]}]}

@@ -1,0 +1,16 @@
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Left</th>
+<th style="text-align: center;">Center</th>
+<th style="text-align: right;">Right</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">a</td>
+<td style="text-align: center;">b</td>
+<td style="text-align: right;">c</td>
+</tr>
+</tbody>
+</table>

@@ -1,0 +1,8 @@
+[ Para
+    [ Str "alpha"
+    , Space
+    , RawInline (Format "html") "<!-- note -->"
+    , Space
+    , Str "gamma"
+    ]
+]

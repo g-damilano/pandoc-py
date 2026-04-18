@@ -1,0 +1,38 @@
+{
+  "fixture_id": "HTIN-block_quote_inline-NATIVE",
+  "input_format": "html",
+  "output_format": "native",
+  "comparison_level": "roundtrip_native_json",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/fixtures/smoke_html_input/block_quote_inline.html",
+    "-f",
+    "html",
+    "-t",
+    "native",
+    "--wrap=none"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/scripts/run_python_cli.py",
+    "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/fixtures/smoke_html_input/block_quote_inline.html",
+    "--from",
+    "html",
+    "--to",
+    "native"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.37",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Native round-trip JSON match.",
+  "oracle_stdout_path": "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/differential/reports/smoke_html_input/HTIN-block_quote_inline-NATIVE.oracle.out",
+  "python_stdout_path": "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/differential/reports/smoke_html_input/HTIN-block_quote_inline-NATIVE.python.out",
+  "oracle_stderr_path": "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/differential/reports/smoke_html_input/HTIN-block_quote_inline-NATIVE.oracle.err",
+  "python_stderr_path": "/mnt/data/work_v38/pandoc_python_port_bundle_v37_commonmark_tranche/tests/differential/reports/smoke_html_input/HTIN-block_quote_inline-NATIVE.python.err",
+  "oracle_native_reparse_exit_code": 0,
+  "python_native_reparse_exit_code": 0,
+  "oracle_native_reparse_error": "",
+  "python_native_reparse_error": ""
+}

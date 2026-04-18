@@ -1,0 +1,21 @@
+[ Para
+    [ Cite
+        [ Citation
+            { citationId = "doe"
+            , citationPrefix = [ Str "see" ]
+            , citationSuffix = [ Str "," , Space , Str "p.\160\&3" ]
+            , citationMode = NormalCitation
+            , citationNoteNum = 1
+            , citationHash = 0
+            }
+        ]
+        [ Str "[see"
+        , Space
+        , Str "@doe,"
+        , Space
+        , Str "p."
+        , Space
+        , Str "3]"
+        ]
+    ]
+]

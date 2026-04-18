@@ -1,0 +1,12 @@
+<ol type="1">
+<li>
+<p>first
+continued</p>
+<ol type="1">
+<li>inner</li>
+</ol>
+</li>
+<li>
+<p>second</p>
+</li>
+</ol>

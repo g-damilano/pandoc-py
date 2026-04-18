@@ -1,0 +1,38 @@
+{
+  "fixture_id": "CMX-IN-NATIVE-LINK_ATTRS",
+  "input_format": "commonmark_x",
+  "output_format": "native",
+  "comparison_level": "roundtrip_native_json",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/work/v43/pandoc_python_port_bundle_v43_denominator_expansion/tests/fixtures/smoke/link_attrs.md",
+    "-f",
+    "commonmark_x",
+    "-t",
+    "native",
+    "--wrap=none"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python3",
+    "/mnt/data/work/v43/pandoc_python_port_bundle_v43_denominator_expansion/scripts/run_python_cli.py",
+    "/mnt/data/work/v43/pandoc_python_port_bundle_v43_denominator_expansion/tests/fixtures/smoke/link_attrs.md",
+    "--from",
+    "commonmark_x",
+    "--to",
+    "native"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.44",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Native round-trip JSON match.",
+  "oracle_stdout_path": "/mnt/data/work/v43/pandoc_python_port_bundle_v43_denominator_expansion/tests/differential/reports/smoke_commonmark_x/CMX-IN-NATIVE-LINK_ATTRS.oracle.out",
+  "python_stdout_path": "/mnt/data/work/v43/pandoc_python_port_bundle_v43_denominator_expansion/tests/differential/reports/smoke_commonmark_x/CMX-IN-NATIVE-LINK_ATTRS.python.out",
+  "oracle_stderr_path": "/mnt/data/work/v43/pandoc_python_port_bundle_v43_denominator_expansion/tests/differential/reports/smoke_commonmark_x/CMX-IN-NATIVE-LINK_ATTRS.oracle.err",
+  "python_stderr_path": "/mnt/data/work/v43/pandoc_python_port_bundle_v43_denominator_expansion/tests/differential/reports/smoke_commonmark_x/CMX-IN-NATIVE-LINK_ATTRS.python.err",
+  "oracle_native_reparse_exit_code": 0,
+  "python_native_reparse_exit_code": 0,
+  "oracle_native_reparse_error": "",
+  "python_native_reparse_error": ""
+}

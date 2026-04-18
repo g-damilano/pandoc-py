@@ -1,0 +1,11 @@
+[ Para
+    [ Str "text"
+    , Space
+    , Image
+        ( "x" , [ "c" ] , [ ( "key" , "val" ) ] )
+        [ Str "a" ]
+        ( "img.png" , "" )
+    , Space
+    , Str "more"
+    ]
+]

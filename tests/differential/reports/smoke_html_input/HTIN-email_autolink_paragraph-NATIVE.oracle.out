@@ -1,0 +1,11 @@
+[ Para
+    [ Str "alpha"
+    , Space
+    , Link
+        ( "" , [ "email" ] , [] )
+        [ Str "team@example.com" ]
+        ( "mailto:team@example.com" , "" )
+    , Space
+    , Str "beta"
+    ]
+]

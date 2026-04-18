@@ -1,0 +1,36 @@
+{
+  "fixture_id": "CMXB-IN-HTML-TWO_PARAGRAPHS",
+  "input_format": "commonmark_x",
+  "output_format": "html",
+  "comparison_level": "normalized_html",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/tmp/v44/pandoc_python_port_bundle_v44_commonmark_x_packet/tests/fixtures/smoke/two_paragraphs.md",
+    "-f",
+    "commonmark_x",
+    "-t",
+    "html",
+    "--mathjax",
+    "--no-highlight",
+    "--wrap=none"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/tmp/v44/pandoc_python_port_bundle_v44_commonmark_x_packet/scripts/run_python_cli.py",
+    "/tmp/v44/pandoc_python_port_bundle_v44_commonmark_x_packet/tests/fixtures/smoke/two_paragraphs.md",
+    "--from",
+    "commonmark_x",
+    "--to",
+    "html"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.44",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Normalized HTML match.",
+  "oracle_stdout_path": "/tmp/v44/pandoc_python_port_bundle_v44_commonmark_x_packet/tests/differential/reports/smoke_commonmark_x_breadth/CMXB-IN-HTML-TWO_PARAGRAPHS.oracle.out",
+  "python_stdout_path": "/tmp/v44/pandoc_python_port_bundle_v44_commonmark_x_packet/tests/differential/reports/smoke_commonmark_x_breadth/CMXB-IN-HTML-TWO_PARAGRAPHS.python.out",
+  "oracle_stderr_path": "/tmp/v44/pandoc_python_port_bundle_v44_commonmark_x_packet/tests/differential/reports/smoke_commonmark_x_breadth/CMXB-IN-HTML-TWO_PARAGRAPHS.oracle.err",
+  "python_stderr_path": "/tmp/v44/pandoc_python_port_bundle_v44_commonmark_x_packet/tests/differential/reports/smoke_commonmark_x_breadth/CMXB-IN-HTML-TWO_PARAGRAPHS.python.err"
+}

@@ -1,0 +1,1 @@
+{"pandoc-api-version": [1, 23, 1], "meta": {}, "blocks": [{"t": "Para", "c": [{"t": "Str", "c": "alpha"}, {"t": "RawInline", "c": ["tex", "\\\\"]}, {"t": "SoftBreak"}, {"t": "Str", "c": "beta"}]}]}

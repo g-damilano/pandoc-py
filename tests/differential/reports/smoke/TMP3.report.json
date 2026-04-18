@@ -1,0 +1,33 @@
+{
+  "fixture_id": "TMP3",
+  "input_format": "markdown",
+  "output_format": "markdown",
+  "comparison_level": "byte",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/tmp/v23cases/span_attrs.md",
+    "-f",
+    "markdown",
+    "-t",
+    "markdown"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/mnt/data/pandoc_python_port_bundle_v23/scripts/run_python_cli.py",
+    "/tmp/v23cases/span_attrs.md",
+    "--from",
+    "markdown",
+    "--to",
+    "markdown"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.22",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "fail",
+  "summary": "Byte mismatch.",
+  "oracle_stdout_path": "/mnt/data/pandoc_python_port_bundle_v23/tests/differential/reports/smoke/TMP3.oracle.out",
+  "python_stdout_path": "/mnt/data/pandoc_python_port_bundle_v23/tests/differential/reports/smoke/TMP3.python.out",
+  "oracle_stderr_path": "/mnt/data/pandoc_python_port_bundle_v23/tests/differential/reports/smoke/TMP3.oracle.err",
+  "python_stderr_path": "/mnt/data/pandoc_python_port_bundle_v23/tests/differential/reports/smoke/TMP3.python.err"
+}

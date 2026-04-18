@@ -1,0 +1,11 @@
+[ BulletList
+    [ [ Para [ Str "alpha" ]
+      , Para [ Str "beta" ]
+      , BulletList
+          [ [ Plain [ Str "nested" , Space , Str "one" ] ]
+          , [ Plain [ Str "nested" , Space , Str "two" ] ]
+          ]
+      ]
+    , [ Para [ Str "gamma" ] ]
+    ]
+]

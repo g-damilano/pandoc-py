@@ -1,0 +1,33 @@
+{
+  "fixture_id": "CMXV50-raw_block_script-json",
+  "input_format": "commonmark_x",
+  "output_format": "json",
+  "comparison_level": "structured_json",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/work_v50/bundle/pandoc_python_port_bundle_v49_commonmark_x_additional_breadth/tests/fixtures/smoke/raw_block_script.md",
+    "-f",
+    "commonmark_x",
+    "-t",
+    "json"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/mnt/data/work_v50/bundle/pandoc_python_port_bundle_v49_commonmark_x_additional_breadth/scripts/run_python_cli.py",
+    "/mnt/data/work_v50/bundle/pandoc_python_port_bundle_v49_commonmark_x_additional_breadth/tests/fixtures/smoke/raw_block_script.md",
+    "--from",
+    "commonmark_x",
+    "--to",
+    "json"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.49",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Structured JSON match.",
+  "oracle_stdout_path": "/mnt/data/work_v50/bundle/pandoc_python_port_bundle_v49_commonmark_x_additional_breadth/tests/differential/reports/smoke_commonmark_x_v50/CMXV50-raw_block_script-json.oracle.out",
+  "python_stdout_path": "/mnt/data/work_v50/bundle/pandoc_python_port_bundle_v49_commonmark_x_additional_breadth/tests/differential/reports/smoke_commonmark_x_v50/CMXV50-raw_block_script-json.python.out",
+  "oracle_stderr_path": "/mnt/data/work_v50/bundle/pandoc_python_port_bundle_v49_commonmark_x_additional_breadth/tests/differential/reports/smoke_commonmark_x_v50/CMXV50-raw_block_script-json.oracle.err",
+  "python_stderr_path": "/mnt/data/work_v50/bundle/pandoc_python_port_bundle_v49_commonmark_x_additional_breadth/tests/differential/reports/smoke_commonmark_x_v50/CMXV50-raw_block_script-json.python.err"
+}

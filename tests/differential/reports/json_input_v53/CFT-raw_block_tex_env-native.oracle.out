@@ -1,0 +1,3 @@
+[ RawBlock
+    (Format "tex") "\\begin{center}\nHello\n\\end{center}"
+]

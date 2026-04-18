@@ -1,0 +1,38 @@
+{
+  "fixture_id": "CM-MD-CM-BULLET_LIST",
+  "input_format": "markdown",
+  "output_format": "commonmark",
+  "comparison_level": "roundtrip_commonmark_json",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/tmp/pandoc_v36/pandoc_python_port_bundle_v36_control_tranche/tests/fixtures/smoke_commonmark/bullet_list.md",
+    "-f",
+    "markdown",
+    "-t",
+    "commonmark",
+    "--wrap=none"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/tmp/pandoc_v36/pandoc_python_port_bundle_v36_control_tranche/scripts/run_python_cli.py",
+    "/tmp/pandoc_v36/pandoc_python_port_bundle_v36_control_tranche/tests/fixtures/smoke_commonmark/bullet_list.md",
+    "--from",
+    "markdown",
+    "--to",
+    "commonmark"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.37",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "CommonMark round-trip JSON match.",
+  "oracle_stdout_path": "/tmp/pandoc_v36/pandoc_python_port_bundle_v36_control_tranche/tests/differential/reports/smoke_commonmark/CM-MD-CM-BULLET_LIST.oracle.out",
+  "python_stdout_path": "/tmp/pandoc_v36/pandoc_python_port_bundle_v36_control_tranche/tests/differential/reports/smoke_commonmark/CM-MD-CM-BULLET_LIST.python.out",
+  "oracle_stderr_path": "/tmp/pandoc_v36/pandoc_python_port_bundle_v36_control_tranche/tests/differential/reports/smoke_commonmark/CM-MD-CM-BULLET_LIST.oracle.err",
+  "python_stderr_path": "/tmp/pandoc_v36/pandoc_python_port_bundle_v36_control_tranche/tests/differential/reports/smoke_commonmark/CM-MD-CM-BULLET_LIST.python.err",
+  "oracle_commonmark_reparse_exit_code": 0,
+  "python_commonmark_reparse_exit_code": 0,
+  "oracle_commonmark_reparse_error": "",
+  "python_commonmark_reparse_error": ""
+}

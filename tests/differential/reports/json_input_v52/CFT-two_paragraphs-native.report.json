@@ -1,0 +1,38 @@
+{
+  "fixture_id": "CFT-two_paragraphs-native",
+  "input_format": "json",
+  "output_format": "native",
+  "comparison_level": "roundtrip_native_json",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/repo_v52/repo/tests/fixtures/json_input_screen/two_paragraphs.json",
+    "-f",
+    "json",
+    "-t",
+    "native",
+    "--wrap=none"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python3",
+    "/mnt/data/repo_v52/repo/scripts/run_python_cli.py",
+    "/mnt/data/repo_v52/repo/tests/fixtures/json_input_screen/two_paragraphs.json",
+    "--from",
+    "json",
+    "--to",
+    "native"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.51",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Native round-trip JSON match.",
+  "oracle_stdout_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_v52/CFT-two_paragraphs-native.oracle.out",
+  "python_stdout_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_v52/CFT-two_paragraphs-native.python.out",
+  "oracle_stderr_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_v52/CFT-two_paragraphs-native.oracle.err",
+  "python_stderr_path": "/mnt/data/repo_v52/repo/tests/differential/reports/json_input_v52/CFT-two_paragraphs-native.python.err",
+  "oracle_native_reparse_exit_code": 0,
+  "python_native_reparse_exit_code": 0,
+  "oracle_native_reparse_error": "",
+  "python_native_reparse_error": ""
+}

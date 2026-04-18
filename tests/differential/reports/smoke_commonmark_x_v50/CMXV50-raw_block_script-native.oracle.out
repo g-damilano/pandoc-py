@@ -1,0 +1,2 @@
+[ RawBlock (Format "html") "<script>\nalert(1)\n</script>\n"
+]

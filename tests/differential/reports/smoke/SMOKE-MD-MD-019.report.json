@@ -1,0 +1,33 @@
+{
+  "fixture_id": "SMOKE-MD-MD-019",
+  "input_format": "markdown",
+  "output_format": "markdown",
+  "comparison_level": "byte",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/tmp/pandoc_v19_work/pandoc_python_port_bundle_v19/tests/fixtures/smoke/image_paragraph.md",
+    "-f",
+    "markdown",
+    "-t",
+    "markdown"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/tmp/pandoc_v19_work/pandoc_python_port_bundle_v19/scripts/run_python_cli.py",
+    "/tmp/pandoc_v19_work/pandoc_python_port_bundle_v19/tests/fixtures/smoke/image_paragraph.md",
+    "--from",
+    "markdown",
+    "--to",
+    "markdown"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.18",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Byte-for-byte match.",
+  "oracle_stdout_path": "/tmp/pandoc_v19_work/pandoc_python_port_bundle_v19/tests/differential/reports/smoke/SMOKE-MD-MD-019.oracle.out",
+  "python_stdout_path": "/tmp/pandoc_v19_work/pandoc_python_port_bundle_v19/tests/differential/reports/smoke/SMOKE-MD-MD-019.python.out",
+  "oracle_stderr_path": "/tmp/pandoc_v19_work/pandoc_python_port_bundle_v19/tests/differential/reports/smoke/SMOKE-MD-MD-019.oracle.err",
+  "python_stderr_path": "/tmp/pandoc_v19_work/pandoc_python_port_bundle_v19/tests/differential/reports/smoke/SMOKE-MD-MD-019.python.err"
+}

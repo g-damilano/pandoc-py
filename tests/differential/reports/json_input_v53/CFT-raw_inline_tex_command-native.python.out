@@ -1,0 +1,1 @@
+[Para [Str "before",Space,RawInline (Format "tex") "\\LaTeX{}",Space,Str "after"]]

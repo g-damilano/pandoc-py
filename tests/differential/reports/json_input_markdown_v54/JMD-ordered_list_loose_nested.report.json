@@ -1,0 +1,9 @@
+{
+  "fixture_id": "JMD-ordered_list_loose_nested",
+  "fixture": "tests/fixtures/json_input_v53/ordered_list_loose_nested.json",
+  "input_format": "json",
+  "output_format": "markdown",
+  "comparison_level": "roundtrip_markdown_json",
+  "status": "pass",
+  "summary": "Markdown round-trip JSON match."
+}

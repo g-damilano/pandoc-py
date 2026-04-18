@@ -1,0 +1,33 @@
+{
+  "fixture_id": "image_title_paragraph-json",
+  "input_format": "commonmark_x",
+  "output_format": "json",
+  "comparison_level": "structured_json",
+  "oracle_command": [
+    "/usr/bin/pandoc",
+    "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/fixtures/smoke/image_title_paragraph.md",
+    "-f",
+    "commonmark_x",
+    "-t",
+    "json"
+  ],
+  "python_command": [
+    "/opt/pyvenv/bin/python",
+    "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/scripts/run_python_cli.py",
+    "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/fixtures/smoke/image_title_paragraph.md",
+    "--from",
+    "commonmark_x",
+    "--to",
+    "json"
+  ],
+  "oracle_version": "pandoc 3.1.11.1",
+  "python_version": "pandoc_py 0.0.48",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Structured JSON match.",
+  "oracle_stdout_path": "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/differential/reports/smoke_commonmark_x_v49/image_title_paragraph-json.oracle.out",
+  "python_stdout_path": "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/differential/reports/smoke_commonmark_x_v49/image_title_paragraph-json.python.out",
+  "oracle_stderr_path": "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/differential/reports/smoke_commonmark_x_v49/image_title_paragraph-json.oracle.err",
+  "python_stderr_path": "/mnt/data/work/v49/pandoc_python_port_bundle_v48_commonmark_x_parity_continuation/tests/differential/reports/smoke_commonmark_x_v49/image_title_paragraph-json.python.err"
+}

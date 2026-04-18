@@ -1,0 +1,16 @@
+[ DefinitionList
+    [ ( [ Str "Term" ]
+      , [ [ Plain
+              [ Str "First"
+              , Space
+              , Str "line"
+              , SoftBreak
+              , Str "second"
+              , Space
+              , Str "line"
+              ]
+          ]
+        ]
+      )
+    ]
+]
