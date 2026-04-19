@@ -37,7 +37,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         source = _read_input(options.input_path)
-        output = convert_text(source, options.from_format, options.to_format)
+        output = convert_text(source, options.from_format, options.to_format, standalone=options.standalone)
         _write_output(output, options.output_path)
         return 0
     except CONVERSION_EXCEPTIONS as exc:

@@ -38,7 +38,7 @@ def read_document(source: str, from_format: str):
     raise AppError(f'Unsupported input format: {from_format}')
 
 
-def write_document(document, to_format: str) -> str:
+def write_document(document, to_format: str, *, standalone: bool = False) -> str:
     if to_format == 'markdown':
         return write_markdown(document)
     if to_format == 'json':
@@ -46,7 +46,7 @@ def write_document(document, to_format: str) -> str:
     if to_format == 'html':
         return write_html(document)
     if to_format == 'native':
-        return write_native(document)
+        return write_native(document, standalone=standalone)
     if to_format == 'commonmark':
         return write_commonmark(document)
     if to_format == 'commonmark_x':
@@ -54,9 +54,9 @@ def write_document(document, to_format: str) -> str:
     raise AppError(f'Unsupported output format: {to_format}')
 
 
-def convert_text(source: str, from_format: str, to_format: str) -> str:
+def convert_text(source: str, from_format: str, to_format: str, *, standalone: bool = False) -> str:
     document = read_document(source, from_format)
-    return write_document(document, to_format)
+    return write_document(document, to_format, standalone=standalone)
 
 
 CONVERSION_EXCEPTIONS = (

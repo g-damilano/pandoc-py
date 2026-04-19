@@ -17,18 +17,21 @@ For a human or AI starting a work cycle, read these in order:
 2. `docs/00_program/AI_START_HERE.md`
 3. `docs/00_program/ITERATION_PROTOCOL.md`
 4. `docs/00_program/OPERATING_MODEL.md`
-5. `trackers/NEXT_ITERATION.md`
-6. `trackers/CAPABILITY_MATRIX.csv`
-7. `trackers/IMPLEMENTATION_LOG.md`
-8. `trackers/VERIFICATION_STATUS.md`
-9. `docs/03_contracts/VERIFICATION_CONTRACT.md`
-10. `trackers/ITERATION_STATE.yaml`
-11. `trackers/WORK_PACKET_TEMPLATE.md`
+5. `docs/00_program/TRANSLATION_PROGRAM_FRAMEWORK.md`
+6. `trackers/ITERATION_INDEX.yaml`
+7. `trackers/NEXT_ITERATION.md`
+8. `trackers/CAPABILITY_MATRIX.csv`
+9. `trackers/IMPLEMENTATION_LOG.md`
+10. `trackers/VERIFICATION_STATUS.md`
+11. `docs/03_contracts/VERIFICATION_CONTRACT.md`
+12. `trackers/ITERATION_STATE.yaml`
+13. `trackers/WORK_PACKET_TEMPLATE.md`
 
 ## Current program truth
 
 - Program roadmap: `docs/00_program/ROADMAP.md`
 - Capability source of truth: `trackers/CAPABILITY_MATRIX.csv`
+- Iteration AI index: `trackers/ITERATION_INDEX.yaml`
 - Immediate work packet: `trackers/NEXT_ITERATION.md`
 - Chronological execution record: `trackers/IMPLEMENTATION_LOG.md`
 - Verification health: `trackers/VERIFICATION_STATUS.md`

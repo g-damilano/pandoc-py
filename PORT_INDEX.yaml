@@ -5,16 +5,20 @@ program:
   source_of_truth:
     roadmap: docs/00_program/ROADMAP.md
     operating_model: docs/00_program/OPERATING_MODEL.md
+    translation_framework: docs/00_program/TRANSLATION_PROGRAM_FRAMEWORK.md
     capability_matrix: trackers/CAPABILITY_MATRIX.csv
     haskell_inventory: trackers/HASKELL_MODULE_INVENTORY.csv
     haskell_capability_seed: trackers/HASKELL_CAPABILITY_SEED.csv
     implementation_log: trackers/IMPLEMENTATION_LOG.md
     verification_status: trackers/VERIFICATION_STATUS.md
+    iteration_index: trackers/ITERATION_INDEX.yaml
     next_iteration: trackers/NEXT_ITERATION.md
   mandatory_read_order:
     - docs/00_program/AI_START_HERE.md
     - docs/00_program/ITERATION_PROTOCOL.md
     - docs/00_program/OPERATING_MODEL.md
+    - docs/00_program/TRANSLATION_PROGRAM_FRAMEWORK.md
+    - trackers/ITERATION_INDEX.yaml
     - docs/01_architecture/HASKELL_REPO_INVENTORY.md
     - docs/01_architecture/HASKELL_REPO_SCOPE_GAPS.md
     - docs/03_contracts/CAPABILITY_CONTRACT.md
@@ -58,6 +62,7 @@ program:
     status_report: trackers/CONTROL_PLANE_STATUS.md
     work_packet_template: trackers/WORK_PACKET_TEMPLATE.md
     iteration_state: trackers/ITERATION_STATE.yaml
+    iteration_index: trackers/ITERATION_INDEX.yaml
     conversion_progress: trackers/CONVERSION_PROGRESS.md
   release_gates:
     - control_plane_validates_cleanly

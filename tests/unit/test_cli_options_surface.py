@@ -23,7 +23,12 @@ from pandoc_py.parsing.common import (
 
 def test_parse_cli_options_supports_short_flags_and_output() -> None:
     options = parse_cli_options(['input.md', '-f', 'markdown', '-t', 'html', '-o', 'out.html'])
-    assert options == CliOptions(input_path='input.md', from_format='markdown', to_format='html', output_path='out.html', version=False)
+    assert options == CliOptions(input_path='input.md', from_format='markdown', to_format='html', output_path='out.html', standalone=False, version=False)
+
+
+def test_parse_cli_options_supports_standalone_flag() -> None:
+    options = parse_cli_options(['input.md', '-f', 'markdown', '-t', 'native', '--standalone'])
+    assert options.standalone is True
 
 
 def test_parse_cli_options_supports_version_without_input() -> None:
@@ -75,6 +80,11 @@ def test_app_convert_text_runs_current_json_route() -> None:
     json_source = '{"pandoc-api-version":[1,23,1],"meta":{},"blocks":[{"t":"Para","c":[{"t":"Str","c":"Hello"}]}]}'
     html = convert_text(json_source, 'json', 'html')
     assert '<p>Hello</p>' in html
+
+
+def test_app_convert_text_native_standalone_wraps_output() -> None:
+    native = convert_text('# Heading\n', 'markdown', 'native', standalone=True)
+    assert native.startswith('Pandoc nullMeta ')
 
 
 def test_app_convert_text_rejects_unknown_route() -> None:

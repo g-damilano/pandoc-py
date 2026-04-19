@@ -66,6 +66,22 @@ class Superscript(Inline):
 
 
 @dataclass(frozen=True)
+class Underline(Inline):
+    inlines: list[Inline] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class SmallCaps(Inline):
+    inlines: list[Inline] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class Quoted(Inline):
+    inlines: list[Inline] = field(default_factory=list)
+    quote_type: str = 'DoubleQuote'
+
+
+@dataclass(frozen=True)
 class Math(Inline):
     text: str
     display: bool = False
@@ -134,6 +150,16 @@ class Block:
 @dataclass(frozen=True)
 class Paragraph(Block):
     inlines: list[Inline] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class LineBlock(Block):
+    lines: list[list[Inline]] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class Null(Block):
+    """A null block placeholder in Pandoc AST."""
 
 
 @dataclass(frozen=True)
@@ -264,6 +290,7 @@ __all__ = [
     'Image',
     'Inline',
     'Link',
+    'LineBlock',
     'Math',
     'MetaBlocks',
     'MetaBool',
@@ -273,6 +300,7 @@ __all__ = [
     'MetaString',
     'MetaValue',
     'Note',
+    'Null',
     'OrderedList',
     'Paragraph',
     'RawBlock',
@@ -285,6 +313,9 @@ __all__ = [
     'Strong',
     'Subscript',
     'Superscript',
+    'Underline',
+    'SmallCaps',
+    'Quoted',
     'Table',
     'ThematicBreak',
 ]

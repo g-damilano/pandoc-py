@@ -25,11 +25,22 @@ from pandoc_py.ast import (
     Image,
     Link,
     Math,
+    MetaBlocks,
+    MetaBool,
+    MetaInlines,
+    MetaList,
+    MetaMap,
+    MetaString,
+    MetaValue,
+    LineBlock,
     Note,
+    Null,
     OrderedList,
     Paragraph,
+    Quoted,
     RawBlock,
     RawInline,
+    SmallCaps,
     SoftBreak,
     Space,
     Span,
@@ -38,6 +49,7 @@ from pandoc_py.ast import (
     Strong,
     Subscript,
     Superscript,
+    Underline,
     Table,
     ThematicBreak,
 )
@@ -54,8 +66,8 @@ class _NativeWriterContext:
     source_format: str = ''
 
 
-InlineNode = Str | Space | SoftBreak | HardBreak | Emph | Strong | Strikeout | Subscript | Superscript | Math | Code | Span | Link | Image | RawInline | Note | Cite
-BlockNode = Paragraph | Heading | ThematicBreak | CodeBlock | RawBlock | BlockQuote | BulletList | OrderedList | DefinitionList | Div | Figure | Table
+InlineNode = Str | Space | SoftBreak | HardBreak | Emph | Strong | Strikeout | Subscript | Superscript | Underline | SmallCaps | Quoted | Math | Code | Span | Link | Image | RawInline | Note | Cite
+BlockNode = Paragraph | LineBlock | Null | Heading | ThematicBreak | CodeBlock | RawBlock | BlockQuote | BulletList | OrderedList | DefinitionList | Div | Figure | Table
 
 URI_AUTOLINK_ATTR = Attr(classes=['uri'])
 EMAIL_AUTOLINK_ATTR = Attr(classes=['email'])
@@ -78,7 +90,7 @@ def _flatten_inline_text(inlines: list[InlineNode]) -> str:
             parts.append(inline.text)
         elif isinstance(inline, (Space, SoftBreak, HardBreak)):
             parts.append(' ')
-        elif isinstance(inline, (Emph, Strong, Strikeout, Subscript, Superscript, Span, Link, Image, Cite)):
+        elif isinstance(inline, (Emph, Strong, Strikeout, Subscript, Superscript, Underline, SmallCaps, Quoted, Span, Link, Image, Cite)):
             parts.append(_flatten_inline_text(inline.inlines))
         elif isinstance(inline, (Code, Math)):
             parts.append(inline.text)
@@ -155,6 +167,30 @@ def _block_list(blocks: list[BlockNode | Block], ctx: _NativeWriterContext, plai
     return '[' + ','.join(_block_repr(block, ctx, plain_in_list=plain_in_list) for block in blocks) + ']'
 
 
+def _meta_value_repr(value: MetaValue, ctx: _NativeWriterContext) -> str:
+    if isinstance(value, MetaBool):
+        return f'MetaBool {"True" if value.value else "False"}'
+    if isinstance(value, MetaString):
+        return f'MetaString {_quoted(value.text)}'
+    if isinstance(value, MetaInlines):
+        return f'MetaInlines {_inline_list(value.inlines, ctx)}'
+    if isinstance(value, MetaBlocks):
+        return f'MetaBlocks {_block_list(value.blocks, ctx)}'
+    if isinstance(value, MetaList):
+        return 'MetaList [' + ','.join(_meta_value_repr(item, ctx) for item in value.items) + ']'
+    if isinstance(value, MetaMap):
+        entries = ','.join(f'({_quoted(key)},{_meta_value_repr(item, ctx)})' for key, item in value.mapping.items())
+        return 'MetaMap [' + entries + ']'
+    raise NativeWriterError(f'Unsupported metadata value for native writer: {type(value).__name__}')
+
+
+def _meta_repr(meta: dict[str, MetaValue], ctx: _NativeWriterContext) -> str:
+    if not meta:
+        return 'nullMeta'
+    entries = ','.join(f'({_quoted(key)},{_meta_value_repr(value, ctx)})' for key, value in meta.items())
+    return 'Meta { unMeta = fromList [' + entries + '] }'
+
+
 def _plain_para(inlines: list[InlineNode], ctx: _NativeWriterContext) -> str:
     return f'Plain {_inline_list(inlines, ctx)}'
 
@@ -195,6 +231,14 @@ def _inline_repr(inline: InlineNode, ctx: _NativeWriterContext) -> str:
         return f'Subscript {_inline_list(inline.inlines, ctx)}'
     if isinstance(inline, Superscript):
         return f'Superscript {_inline_list(inline.inlines, ctx)}'
+    if isinstance(inline, Underline):
+        return f'Underline {_inline_list(inline.inlines, ctx)}'
+    if isinstance(inline, SmallCaps):
+        return f'SmallCaps {_inline_list(inline.inlines, ctx)}'
+    if isinstance(inline, Quoted):
+        if inline.quote_type not in {'SingleQuote', 'DoubleQuote'}:
+            raise NativeWriterError(f'Unsupported quote type in current native writer slice: {inline.quote_type}')
+        return f'Quoted {inline.quote_type} {_inline_list(inline.inlines, ctx)}'
     if isinstance(inline, Math):
         return f'Math {"DisplayMath" if inline.display else "InlineMath"} {_quoted(inline.text)}'
     if isinstance(inline, Code):
@@ -261,6 +305,8 @@ def _block_repr(block: BlockNode | Block, ctx: _NativeWriterContext, plain_in_li
         return f'Header {block.level} {_attr_repr(_heading_attr(block, ctx))} {_inline_list(block.inlines, ctx)}'
     if isinstance(block, ThematicBreak):
         return 'HorizontalRule'
+    if isinstance(block, Null):
+        return 'Null'
     if isinstance(block, CodeBlock):
         classes = list(block.attr.classes)
         if block.info and block.info not in classes:
@@ -269,6 +315,9 @@ def _block_repr(block: BlockNode | Block, ctx: _NativeWriterContext, plain_in_li
         return f'CodeBlock {_attr_repr(attr)} {_quoted(block.text)}'
     if isinstance(block, RawBlock):
         return f'RawBlock (Format {_quoted(block.format)}) {_quoted(block.text)}'
+    if isinstance(block, LineBlock):
+        lines = '[' + ','.join(_inline_list(line, ctx) for line in block.lines) + ']'
+        return f'LineBlock {lines}'
     if isinstance(block, BlockQuote):
         return f'BlockQuote {_block_list(block.blocks, ctx)}'
     if isinstance(block, BulletList):
@@ -294,6 +343,9 @@ def _block_repr(block: BlockNode | Block, ctx: _NativeWriterContext, plain_in_li
     raise NativeWriterError(f'Unsupported block node for native writer: {type(block).__name__}')
 
 
-def write_native(document: Document) -> str:
+def write_native(document: Document, *, standalone: bool = False) -> str:
     ctx = _NativeWriterContext(source_format=document.source_format)
-    return _block_list(document.blocks, ctx) + '\n'
+    blocks = _block_list(document.blocks, ctx)
+    if standalone or document.meta or document.source_format == 'native_pandoc':
+        return f'Pandoc {_meta_repr(document.meta, ctx)} {blocks}\n'
+    return blocks + '\n'

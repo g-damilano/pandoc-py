@@ -21,6 +21,7 @@ from pandoc_py.ast import (
     Heading,
     Image,
     Link,
+    LineBlock,
     Math,
     MetaBlocks,
     MetaBool,
@@ -30,10 +31,13 @@ from pandoc_py.ast import (
     MetaString,
     MetaValue,
     Note,
+    Null,
     OrderedList,
     Paragraph,
+    Quoted,
     RawBlock,
     RawInline,
+    SmallCaps,
     SoftBreak,
     Space,
     Span,
@@ -42,6 +46,7 @@ from pandoc_py.ast import (
     Strong,
     Subscript,
     Superscript,
+    Underline,
     Table,
     ThematicBreak,
 )
@@ -113,6 +118,16 @@ def _inline_from_payload(payload: Any):
         return Subscript(_inlines_from_payload(content))
     if tag == 'Superscript':
         return Superscript(_inlines_from_payload(content))
+    if tag == 'Underline':
+        return Underline(_inlines_from_payload(content))
+    if tag == 'SmallCaps':
+        return SmallCaps(_inlines_from_payload(content))
+    if tag == 'Quoted':
+        _expect(isinstance(content, list) and len(content) == 2, 'Quoted payload must be [quoteType, inlines].')
+        quote_payload, inlines_payload = content
+        quote_type = quote_payload.get('t') if isinstance(quote_payload, dict) else quote_payload
+        _expect(quote_type in {'SingleQuote', 'DoubleQuote'}, f'Unsupported quote type: {quote_type!r}')
+        return Quoted(inlines=_inlines_from_payload(inlines_payload), quote_type=str(quote_type))
     if tag == 'Math':
         _expect(isinstance(content, list) and len(content) == 2, 'Math payload must be [mode, text].')
         mode, text = content
@@ -287,6 +302,8 @@ def _block_from_payload(payload: Any):
     content = payload.get('c')
     if tag in {'Para', 'Plain'}:
         return Paragraph(_inlines_from_payload(content))
+    if tag == 'Null':
+        return Null()
     if tag == 'Header':
         _expect(isinstance(content, list) and len(content) == 3, 'Header payload must be [level, attr, inlines].')
         level, attr_payload, inlines_payload = content
@@ -307,6 +324,9 @@ def _block_from_payload(payload: Any):
         fmt, text = content
         _expect(isinstance(fmt, str) and isinstance(text, str), 'RawBlock format and text must be strings.')
         return RawBlock(format=fmt, text=text)
+    if tag == 'LineBlock':
+        _expect(isinstance(content, list), 'LineBlock payload must be a list of inline lists.')
+        return LineBlock(lines=[_inlines_from_payload(line) for line in content])
     if tag == 'BlockQuote':
         return BlockQuote(blocks=_blocks_from_payload(content))
     if tag == 'BulletList':

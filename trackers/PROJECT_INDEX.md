@@ -6,6 +6,8 @@ Operational quick links:
 - AI entrypoint: `docs/00_program/AI_START_HERE.md`
 - Iteration protocol: `docs/00_program/ITERATION_PROTOCOL.md`
 - Operating model: `docs/00_program/OPERATING_MODEL.md`
+- Program framework: `docs/00_program/TRANSLATION_PROGRAM_FRAMEWORK.md`
+- Iteration index: `trackers/ITERATION_INDEX.yaml`
 - Haskell repo inventory: `docs/01_architecture/HASKELL_REPO_INVENTORY.md`
 - Scope gaps: `docs/01_architecture/HASKELL_REPO_SCOPE_GAPS.md`
 - Capability contract: `docs/03_contracts/CAPABILITY_CONTRACT.md`

@@ -20,15 +20,17 @@ Port Pandoc from Haskell to Python **without losing behavioral traceability** an
 3. `docs/00_program/ROADMAP.md`
 4. `docs/00_program/ITERATION_PROTOCOL.md`
 5. `docs/00_program/OPERATING_MODEL.md`
-6. `docs/03_contracts/CAPABILITY_CONTRACT.md`
-7. `docs/03_contracts/VERIFICATION_CONTRACT.md`
-8. `docs/03_contracts/WORK_PACKET_CONTRACT.md`
-9. `trackers/ITERATION_STATE.yaml`
-10. `trackers/WORK_PACKET_TEMPLATE.md`
-11. `trackers/NEXT_ITERATION.md`
-12. `trackers/CAPABILITY_MATRIX.csv`
-13. `trackers/IMPLEMENTATION_LOG.md`
-14. `trackers/VERIFICATION_STATUS.md`
+6. `docs/00_program/TRANSLATION_PROGRAM_FRAMEWORK.md`
+7. `trackers/ITERATION_INDEX.yaml`
+8. `docs/03_contracts/CAPABILITY_CONTRACT.md`
+9. `docs/03_contracts/VERIFICATION_CONTRACT.md`
+10. `docs/03_contracts/WORK_PACKET_CONTRACT.md`
+11. `trackers/ITERATION_STATE.yaml`
+12. `trackers/WORK_PACKET_TEMPLATE.md`
+13. `trackers/NEXT_ITERATION.md`
+14. `trackers/CAPABILITY_MATRIX.csv`
+15. `trackers/IMPLEMENTATION_LOG.md`
+16. `trackers/VERIFICATION_STATUS.md`
 
 ## How to choose work
 
