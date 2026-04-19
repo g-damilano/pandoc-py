@@ -2,8 +2,8 @@
 
 Work on one of these packets, in this order of preference:
 
-1. **Metadata/native input packet** — add the next constrained metadata-emission or native-input route only if its comparator and non-oracle implementation contract are declared before implementation and the acceptance rows are added to the matrix first.
-2. **Targeted raw/TeX writer closure** — only if needed for the metadata/native packet, tighten raw/TeX writer semantics under existing comparators without opening broad writer-option scope.
-3. **Non-JSON markdown-output admission** — widen semantic markdown round-trip verification beyond JSON input only after source-format-specific heading-id and metadata policy is declared explicitly.
+1. **Native-input admission + verification packet** — formally admit the landed native reader tranche into the governed matrix, run the dedicated native-reader unit surface, add oracle-backed differential evidence for native -> json/html/native rails, and only then upgrade the rows from implemented-unverified to verified states.
+2. **Native wrapper + metadata packet** — extend native input beyond the current block-list surface only after the exact top-level `Pandoc ...` wrapper and metadata comparator contract are declared explicitly.
+3. **Non-JSON markdown-output admission beyond JSON input** — widen semantic markdown round-trip verification beyond JSON input only after source-format-specific heading-id and metadata policy is declared explicitly.
 
-Do not open DOCX, PPTX, ODT, EPUB, Lua breadth, citeproc breadth, or broad writer-option work in the next round. The `json -> markdown` route is now governed; the next packet should change frontier, not simply relabel the same writer rail.
+Do not open DOCX, PPTX, ODT, EPUB, Lua breadth, citeproc breadth, or broad writer-option work in the next round. The newly landed native-input tranche should be governed and evidenced before another broad frontier is opened.
