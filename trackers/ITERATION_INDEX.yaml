@@ -1,0 +1,75 @@
+version: 1
+program:
+  objective: "Port Pandoc behavior from Haskell to Python with verification-first discipline."
+  completion_rule:
+    - "Python behavior implemented for a scoped capability."
+    - "Equivalent Haskell/oracle behavior identified and runnable."
+    - "Shared fixture input executed against oracle and Python paths."
+    - "Outputs compared with declared comparator policy."
+    - "Mismatch fixed in-round or logged as bounded divergence."
+
+current_state:
+  package_version: "pandoc_py 0.0.55"
+  control_plane_status: "PASS"
+  active_matrix_rows: 589
+  implemented_or_better_rows: 501
+  smoke_verified_or_better_rows: 500
+
+status_model:
+  missing:
+    - not_started
+    - mapped_only
+  partial:
+    - skeleton_only
+    - partially_implemented
+  pending_verification:
+    - implemented_unverified
+  verified:
+    - verified_smoke
+    - verified_standard
+    - verified_extended
+    - done
+  constrained:
+    - known_divergence
+    - blocked
+    - deferred
+  refinement_note: refinement_required
+
+next_priorities:
+  - "Native-input admission + verification packet"
+  - "Native wrapper + metadata packet"
+  - "Markdown-output admission beyond JSON input"
+
+required_contracts:
+  - docs/03_contracts/CAPABILITY_CONTRACT.md
+  - docs/03_contracts/VERIFICATION_CONTRACT.md
+  - docs/03_contracts/WORK_PACKET_CONTRACT.md
+  - docs/03_contracts/ITERATION_HANDOFF_CONTRACT.md
+  - docs/03_contracts/CHANGE_CONTROL_CONTRACT.md
+
+required_iteration_reads:
+  - INDEX.md
+  - PORT_INDEX.yaml
+  - docs/00_program/AI_START_HERE.md
+  - docs/00_program/OPERATING_MODEL.md
+  - docs/00_program/TRANSLATION_PROGRAM_FRAMEWORK.md
+  - trackers/NEXT_ITERATION.md
+  - trackers/CAPABILITY_MATRIX.csv
+  - trackers/IMPLEMENTATION_LOG.md
+  - trackers/VERIFICATION_STATUS.md
+
+verification_rails:
+  driver: scripts/run_differential.py
+  requirements:
+    - "Declare oracle route and Python route for each packet."
+    - "Declare comparator level and normalization profile."
+    - "Store report artifacts under tests/differential/reports/."
+    - "Record outcomes in trackers/VERIFICATION_STATUS.md."
+
+closeout_checklist:
+  - "Capability rows updated."
+  - "Implementation log updated."
+  - "Verification status updated."
+  - "Divergences logged or resolved."
+  - "Next packet updated."
+  - "Control plane validator run."

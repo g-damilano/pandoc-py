@@ -21,11 +21,22 @@ from pandoc_py.ast import (
     Image,
     Link,
     Math,
+    MetaBlocks,
+    MetaBool,
+    MetaInlines,
+    MetaList,
+    MetaMap,
+    MetaString,
+    MetaValue,
+    LineBlock,
     Note,
+    Null,
     OrderedList,
     Paragraph,
     RawBlock,
     RawInline,
+    Quoted,
+    SmallCaps,
     SoftBreak,
     Space,
     Span,
@@ -34,6 +45,7 @@ from pandoc_py.ast import (
     Strong,
     Subscript,
     Superscript,
+    Underline,
     Table,
     ThematicBreak,
 )
@@ -336,6 +348,65 @@ def _parse_citation(value: Any) -> Citation:
     )
 
 
+def _parse_meta_value(value: Any) -> MetaValue:
+    if isinstance(value, _Ident):
+        if value.name == 'True':
+            return MetaBool(True)
+        if value.name == 'False':
+            return MetaBool(False)
+    app = _expect_app(value)
+    if app.tag == 'MetaBool':
+        _expect(len(app.args) == 1, 'MetaBool payload must wrap one boolean value.')
+        raw = app.args[0]
+        if isinstance(raw, _Ident):
+            _expect(raw.name in {'True', 'False'}, 'MetaBool payload must be True or False.')
+            return MetaBool(raw.name == 'True')
+        _expect(isinstance(raw, bool), 'MetaBool payload must be a bool.')
+        return MetaBool(raw)
+    if app.tag == 'MetaString':
+        _expect(len(app.args) == 1 and isinstance(app.args[0], str), 'MetaString payload must wrap one string.')
+        return MetaString(app.args[0])
+    if app.tag == 'MetaInlines':
+        _expect(len(app.args) == 1, 'MetaInlines payload must wrap one inline list.')
+        return MetaInlines(_parse_inlines(app.args[0]))
+    if app.tag == 'MetaBlocks':
+        _expect(len(app.args) == 1, 'MetaBlocks payload must wrap one block list.')
+        return MetaBlocks(_parse_blocks(app.args[0]))
+    if app.tag == 'MetaList':
+        _expect(len(app.args) == 1 and isinstance(app.args[0], list), 'MetaList payload must wrap one meta-value list.')
+        return MetaList([_parse_meta_value(item) for item in app.args[0]])
+    if app.tag == 'MetaMap':
+        _expect(len(app.args) == 1 and isinstance(app.args[0], list), 'MetaMap payload must wrap one map-entry list.')
+        mapping: dict[str, MetaValue] = {}
+        for item in app.args[0]:
+            _expect(isinstance(item, tuple) and len(item) == 2, 'MetaMap entries must be (key, value) tuples.')
+            key, raw_value = item
+            _expect(isinstance(key, str), 'MetaMap keys must be strings.')
+            mapping[key] = _parse_meta_value(raw_value)
+        return MetaMap(mapping)
+    raise NativeReaderError(f'Unsupported meta tag for current native reader slice: {app.tag}')
+
+
+def _coerce_meta_map_entries(value: Any) -> list[Any]:
+    if isinstance(value, list):
+        return value
+    if isinstance(value, _App) and value.tag == 'fromList':
+        _expect(len(value.args) == 1 and isinstance(value.args[0], list), 'fromList payload must wrap one list.')
+        return value.args[0]
+    raise NativeReaderError('Meta map entries must be a list or fromList list in current native reader slice.')
+
+
+def _parse_meta_map(value: Any) -> dict[str, MetaValue]:
+    if isinstance(value, _Ident) and value.name == 'nullMeta':
+        return {}
+    if isinstance(value, _Record) and value.tag == 'Meta':
+        entries = _coerce_meta_map_entries(value.fields.get('unMeta', []))
+        return _parse_meta_map(_App('MetaMap', [entries]))
+    meta_map = _parse_meta_value(value)
+    _expect(isinstance(meta_map, MetaMap), 'Pandoc wrapper metadata must decode to MetaMap or nullMeta.')
+    return dict(meta_map.mapping)
+
+
 def _parse_inline(value: Any) -> Any:
     if isinstance(value, _Ident):
         if value.name == 'Space':
@@ -359,6 +430,15 @@ def _parse_inline(value: Any) -> Any:
         return Subscript(_parse_inlines(app.args[0]))
     if app.tag == 'Superscript':
         return Superscript(_parse_inlines(app.args[0]))
+    if app.tag == 'Underline':
+        return Underline(_parse_inlines(app.args[0]))
+    if app.tag == 'SmallCaps':
+        return SmallCaps(_parse_inlines(app.args[0]))
+    if app.tag == 'Quoted':
+        _expect(len(app.args) == 2, 'Quoted payload must be [quoteType, inlines].')
+        quote_type = _ident_name(app.args[0])
+        _expect(quote_type in {'SingleQuote', 'DoubleQuote'}, 'Quoted payload quoteType must be SingleQuote or DoubleQuote.')
+        return Quoted(inlines=_parse_inlines(app.args[1]), quote_type=quote_type)
     if app.tag == 'Math':
         _expect(len(app.args) == 2 and isinstance(app.args[1], str), 'Math payload must be [mode, text].')
         return Math(text=app.args[1], display=(_ident_name(app.args[0]) == 'DisplayMath'))
@@ -516,6 +596,8 @@ def _parse_block(value: Any) -> Any:
     if isinstance(value, _Ident):
         if value.name == 'HorizontalRule':
             return ThematicBreak()
+        if value.name == 'Null':
+            return Null()
         raise NativeReaderError(f'Unsupported bare block tag in current native reader slice: {value.name}')
     app = _expect_app(value)
     if app.tag in {'Para', 'Plain'}:
@@ -538,6 +620,9 @@ def _parse_block(value: Any) -> Any:
     if app.tag == 'RawBlock':
         _expect(len(app.args) == 2 and isinstance(app.args[1], str), 'RawBlock payload must be [format, text].')
         return RawBlock(format=_parse_format(app.args[0]), text=app.args[1])
+    if app.tag == 'LineBlock':
+        _expect(len(app.args) == 1 and isinstance(app.args[0], list), 'LineBlock payload must wrap one list of inline lists.')
+        return LineBlock(lines=[_parse_inlines(line) for line in app.args[0]])
     if app.tag == 'BlockQuote':
         _expect(len(app.args) == 1, 'BlockQuote payload must wrap one block list.')
         return BlockQuote(blocks=_parse_blocks(app.args[0]))
@@ -569,8 +654,26 @@ def _parse_block(value: Any) -> Any:
 def read_native(source: str) -> Document:
     tree = _parse_native_tree(source)
     if isinstance(tree, _App) and tree.tag == 'Pandoc':
-        raise NativeReaderError(
-            'Pandoc-wrapper native input with top-level metadata is outside the current admitted native reader slice.'
+        _expect(len(tree.args) == 2, 'Pandoc wrapper payload must be [meta, blocks].')
+        return Document(
+            blocks=_parse_blocks(tree.args[1]),
+            meta=_parse_meta_map(tree.args[0]),
+            source_format='native_pandoc',
         )
-    _expect(isinstance(tree, list), 'Current native reader slice expects the block-list native surface.')
-    return Document(blocks=_parse_blocks(tree), source_format='native')
+
+    if isinstance(tree, list):
+        try:
+            return Document(blocks=_parse_blocks(tree), source_format='native')
+        except NativeReaderError:
+            try:
+                return Document(blocks=[Paragraph(_parse_inlines(tree))], source_format='native')
+            except NativeReaderError as exc:
+                raise NativeReaderError('Could not decode native list payload as blocks or inlines.') from exc
+
+    try:
+        return Document(blocks=[_parse_block(tree)], source_format='native')
+    except NativeReaderError:
+        try:
+            return Document(blocks=[Paragraph([_parse_inline(tree)])], source_format='native')
+        except NativeReaderError as exc:
+            raise NativeReaderError('Could not decode native payload as Pandoc, block list, block, inline list, or inline.') from exc

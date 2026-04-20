@@ -334,7 +334,7 @@ INV-RD-MAN-001,Reader,src/Text/Pandoc/Readers/Man.hs,src/pandoc_py/readers/man.p
 INV-RD-MDOC-001,Reader,src/Text/Pandoc/Readers/Mdoc.hs,src/pandoc_py/readers/mdoc.py,Mdoc reader family mapped from Haskell reference,Medium,mapped_only,none,,Module-level inventory seed only
 INV-RD-MEDIAWIKI-001,Reader,src/Text/Pandoc/Readers/MediaWiki.hs,src/pandoc_py/readers/mediawiki.py,MediaWiki reader family mapped from Haskell reference,Medium,mapped_only,none,,Module-level inventory seed only
 INV-RD-MUSE-001,Reader,src/Text/Pandoc/Readers/Muse.hs,src/pandoc_py/readers/muse.py,Muse reader family mapped from Haskell reference,Medium,mapped_only,none,,Module-level inventory seed only
-INV-RD-NATIVE-001,Reader,src/Text/Pandoc/Readers/Native.hs,src/pandoc_py/readers/native.py,Native reader family mapped from Haskell reference,High,mapped_only,none,,Module-level inventory seed only
+INV-RD-NATIVE-001,Reader,src/Text/Pandoc/Readers/Native.hs,src/pandoc_py/readers/native.py,Native reader family mapped from Haskell reference,High,implemented_unverified,none,,Native reader now accepts Pandoc wrapper + Meta/nullMeta forms; oracle differential admission pending environment pandoc binary.
 INV-RD-ODT-001,Reader,src/Text/Pandoc/Readers/ODT.hs,src/pandoc_py/readers/odt.py,ODT reader family mapped from Haskell reference,Medium,mapped_only,none,,Module-level inventory seed only
 INV-RD-OPML-001,Reader,src/Text/Pandoc/Readers/OPML.hs,src/pandoc_py/readers/opml.py,OPML reader family mapped from Haskell reference,Medium,mapped_only,none,,Module-level inventory seed only
 INV-RD-ORG-001,Reader,src/Text/Pandoc/Readers/Org.hs,src/pandoc_py/readers/org.py,Org reader family mapped from Haskell reference,Medium,mapped_only,none,,Module-level inventory seed only

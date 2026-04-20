@@ -24,6 +24,7 @@ from pandoc_py.ast import (
     Heading,
     Image,
     Link,
+    LineBlock,
     Math,
     MetaBlocks,
     MetaBool,
@@ -33,10 +34,13 @@ from pandoc_py.ast import (
     MetaString,
     MetaValue,
     Note,
+    Null,
     OrderedList,
     Paragraph,
+    Quoted,
     RawBlock,
     RawInline,
+    SmallCaps,
     SoftBreak,
     Space,
     Span,
@@ -45,6 +49,7 @@ from pandoc_py.ast import (
     Strong,
     Subscript,
     Superscript,
+    Underline,
     Table,
     ThematicBreak,
 )
@@ -67,8 +72,8 @@ class _JsonWriterContext:
     source_format: str = ''
 
 
-InlineNode = Str | Space | SoftBreak | HardBreak | Emph | Strong | Strikeout | Subscript | Superscript | Math | Code | Span | Link | Image | RawInline | Note | Cite
-BlockNode = Paragraph | Heading | ThematicBreak | CodeBlock | RawBlock | BlockQuote | BulletList | OrderedList | DefinitionList | Div | Figure | Table
+InlineNode = Str | Space | SoftBreak | HardBreak | Emph | Strong | Strikeout | Subscript | Superscript | Underline | SmallCaps | Quoted | Math | Code | Span | Link | Image | RawInline | Note | Cite
+BlockNode = Paragraph | LineBlock | Null | Heading | ThematicBreak | CodeBlock | RawBlock | BlockQuote | BulletList | OrderedList | DefinitionList | Div | Figure | Table
 
 
 def _attr_payload(attr: Attr) -> list[object]:
@@ -122,6 +127,14 @@ def _inline_to_payload(inline: InlineNode, ctx: _JsonWriterContext) -> dict[str,
         return {'t': 'Subscript', 'c': [_inline_to_payload(i, ctx) for i in inline.inlines]}
     if isinstance(inline, Superscript):
         return {'t': 'Superscript', 'c': [_inline_to_payload(i, ctx) for i in inline.inlines]}
+    if isinstance(inline, Underline):
+        return {'t': 'Underline', 'c': [_inline_to_payload(i, ctx) for i in inline.inlines]}
+    if isinstance(inline, SmallCaps):
+        return {'t': 'SmallCaps', 'c': [_inline_to_payload(i, ctx) for i in inline.inlines]}
+    if isinstance(inline, Quoted):
+        if inline.quote_type not in {'SingleQuote', 'DoubleQuote'}:
+            raise PandocJsonWriterError(f'Unsupported quote type in current pandoc JSON writer slice: {inline.quote_type}')
+        return {'t': 'Quoted', 'c': [{'t': inline.quote_type}, [_inline_to_payload(i, ctx) for i in inline.inlines]]}
     if isinstance(inline, Math):
         return {'t': 'Math', 'c': [{'t': 'DisplayMath' if inline.display else 'InlineMath'}, inline.text]}
     if isinstance(inline, Code):
@@ -172,7 +185,7 @@ def _flatten_inline_text(inlines: list[InlineNode]) -> str:
         if isinstance(inline, (Space, SoftBreak, HardBreak)):
             parts.append(' ')
             continue
-        if isinstance(inline, (Emph, Strong, Strikeout, Subscript, Superscript, Span, Link, Image, Cite)):
+        if isinstance(inline, (Emph, Strong, Strikeout, Subscript, Superscript, Underline, SmallCaps, Quoted, Span, Link, Image, Cite)):
             parts.append(_flatten_inline_text(inline.inlines))
             continue
         if isinstance(inline, (Code, Math)):
@@ -314,6 +327,10 @@ def _block_to_payload(block: BlockNode | Block, ctx: _JsonWriterContext, plain_i
         if figure is not None:
             return _figure_payload(figure, ctx)
         return _paragraph_like_payload(block, ctx, plain_in_list)
+    if isinstance(block, Null):
+        return {'t': 'Null'}
+    if isinstance(block, LineBlock):
+        return {'t': 'LineBlock', 'c': [[_inline_to_payload(i, ctx) for i in line] for line in block.lines]}
     if isinstance(block, Heading):
         return {
             't': 'Header',
