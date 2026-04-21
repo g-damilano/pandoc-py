@@ -18,13 +18,17 @@ from pandoc_py.ast import (
     HardBreak,
     Heading,
     Image,
+    LineBlock,
     Link,
     Math,
     Note,
+    Null,
     OrderedList,
     Paragraph,
+    Quoted,
     RawBlock,
     RawInline,
+    SmallCaps,
     SoftBreak,
     Space,
     Span,
@@ -35,6 +39,7 @@ from pandoc_py.ast import (
     Superscript,
     Table,
     ThematicBreak,
+    Underline,
 )
 
 THEMATIC_BREAK_RENDER = '-' * 72
@@ -44,7 +49,7 @@ class MarkdownWriterError(TypeError):
     """Raised when the writer receives a node outside the supported AST slice."""
 
 
-InlineNode = Str | Space | SoftBreak | HardBreak | Emph | Strong | Strikeout | Subscript | Superscript | Math | Code | Span | Link | Image | RawInline | Note | Cite
+InlineNode = Str | Space | SoftBreak | HardBreak | Emph | Strong | Strikeout | Subscript | Superscript | Underline | SmallCaps | Quoted | Math | Code | Span | Link | Image | RawInline | Note | Cite
 
 
 @dataclass
@@ -116,6 +121,14 @@ def _write_cite(inline: Cite, ctx: _MarkdownWriterContext) -> str:
     return '[' + '; '.join(rendered_items) + ']'
 
 
+def _quote_marks(quote_type: str) -> tuple[str, str]:
+    if quote_type == 'SingleQuote':
+        return "'", "'"
+    if quote_type == 'DoubleQuote':
+        return '"', '"'
+    raise MarkdownWriterError(f'Unsupported quote type in current markdown writer slice: {quote_type}')
+
+
 def _write_inline(inline: InlineNode, ctx: _MarkdownWriterContext) -> str:
     if isinstance(inline, Str):
         return inline.text
@@ -135,6 +148,13 @@ def _write_inline(inline: InlineNode, ctx: _MarkdownWriterContext) -> str:
         return f"~{_write_inlines(inline.inlines, ctx)}~"
     if isinstance(inline, Superscript):
         return f"^{_write_inlines(inline.inlines, ctx)}^"
+    if isinstance(inline, Underline):
+        return f'[{_write_inlines(inline.inlines, ctx)}]{{.underline}}'
+    if isinstance(inline, SmallCaps):
+        return f'[{_write_inlines(inline.inlines, ctx)}]{{.smallcaps}}'
+    if isinstance(inline, Quoted):
+        open_q, close_q = _quote_marks(inline.quote_type)
+        return f'{open_q}{_write_inlines(inline.inlines, ctx)}{close_q}'
     if isinstance(inline, Math):
         delim = '$$' if inline.display else '$'
         return f'{delim}{inline.text}{delim}'
@@ -174,8 +194,20 @@ def _write_inlines(inlines: list[InlineNode], ctx: _MarkdownWriterContext) -> st
     return ''.join(_write_inline(inline, ctx) for inline in inlines).strip()
 
 
+def _write_raw_inlines(inlines: list[InlineNode], ctx: _MarkdownWriterContext) -> str:
+    return ''.join(_write_inline(inline, ctx) for inline in inlines)
+
+
 def _write_paragraph(block: Paragraph, ctx: _MarkdownWriterContext) -> str:
     return _write_inlines(block.inlines, ctx)
+
+
+def _write_line_block(block: LineBlock, ctx: _MarkdownWriterContext) -> str:
+    rendered_lines: list[str] = []
+    for line in block.lines:
+        text = _write_raw_inlines(line, ctx)
+        rendered_lines.append('| ' + text if text else '|')
+    return '\n'.join(rendered_lines)
 
 
 def _write_heading(block: Heading, ctx: _MarkdownWriterContext) -> str:
@@ -350,6 +382,11 @@ def _write_blocks(blocks: list[object], ctx: _MarkdownWriterContext) -> str:
     for block in blocks:
         if isinstance(block, Paragraph):
             rendered_blocks.append(_write_paragraph(block, ctx))
+            continue
+        if isinstance(block, LineBlock):
+            rendered_blocks.append(_write_line_block(block, ctx))
+            continue
+        if isinstance(block, Null):
             continue
         if isinstance(block, Heading):
             rendered_blocks.append(_write_heading(block, ctx))
