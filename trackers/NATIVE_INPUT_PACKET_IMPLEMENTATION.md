@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented in code, widened beyond the initial block-list-only tranche, and now extended through the markdown and HTML writers for the newly admitted native-only nodes. It is still not yet formally admitted into the governed capability matrix.
+Implemented in code, widened beyond the initial block-list-only tranche, extended through the markdown and HTML writers for the newly admitted native-only nodes, and now admitted into the governed tracker via a native supplement matrix. It is not yet smoke-verified on oracle-backed differential rails for the widened packet.
 
 ## Landed code surface
 
@@ -16,6 +16,7 @@ Implemented in code, widened beyond the initial block-list-only tranche, and now
 - `src/pandoc_py/__init__.py` (`0.0.57`)
 - `tests/unit/test_native_reader_surface.py`
 - `tests/unit/test_native_widened_output_surface.py`
+- `trackers/CAPABILITY_MATRIX_NATIVE_SUPPLEMENT.csv`
 
 ## Current implemented scope
 
@@ -46,13 +47,12 @@ Across those entry shapes, the active AST slice now covers:
 - metadata values in the admitted AST family: `MetaBool`, `MetaString`, `MetaInlines`, `MetaBlocks`, `MetaList`, and `MetaMap`
 - widened native-only nodes flowing through end-to-end output rails: `Underline`, `SmallCaps`, `Quoted`, `LineBlock`, and `Null`
 
-## Remaining fail-closed boundary
+## Remaining boundary
 
-The code is landed, but the widened native packet is not yet formally governed on oracle-backed differential rails. The next honest step is evidence and matrix admission, not opening a new broad format family.
+The widened native packet is now governed for implemented progress, but it is not yet formally smoke-verified on oracle-backed differential rails. The next honest step is evidence and row upgrades from `implemented_unverified` to verified states.
 
-## Recommended matrix-admission rows for the next formal tracker update
+## Admitted supplement rows
 
-- `INV-RD-NATIVE-001` -> `implemented_unverified`
 - `RD-NATIVE-CORE-001`
 - `RD-NATIVE-INLINE-001`
 - `RD-NATIVE-ATTR-001`
@@ -67,8 +67,8 @@ The code is landed, but the widened native packet is not yet formally governed o
 - `VER-NATIVE-READER-SURFACE-001`
 - `VER-NATIVE-WIDENED-OUTPUT-SURFACE-001`
 
-## Working percentage impact once admitted as implemented-unverified
+## Published progress impact after tracker catch-up
 
-Starting from the published governed state of `500 / 589`, admitting the widened native packet above would move the implemented-or-better count to approximately `514 / 602` = `85.4%`.
+After admitting the native supplement matrix into the governed progress script, the published implemented-or-better count moves from `500 / 589` to `513 / 602` = `85.2%`.
 
-This is still a working estimate only until the capability matrix and progress report are regenerated from the repository state.
+The smoke-verified-or-better count remains `500 / 602` = `83.1%` until oracle-backed widened-native evidence is archived and the corresponding rows are upgraded.
