@@ -21,13 +21,17 @@ from pandoc_py.ast import (
     HardBreak,
     Heading,
     Image,
+    LineBlock,
     Link,
     Math,
     Note,
+    Null,
     OrderedList,
     Paragraph,
+    Quoted,
     RawBlock,
     RawInline,
+    SmallCaps,
     SoftBreak,
     Space,
     Span,
@@ -38,6 +42,7 @@ from pandoc_py.ast import (
     Superscript,
     Table,
     ThematicBreak,
+    Underline,
 )
 
 
@@ -47,7 +52,7 @@ class HtmlWriterError(TypeError):
 
 TASK_BOX_UNCHECKED = '☐'
 TASK_BOX_CHECKED = '☒'
-InlineNode = Str | Space | SoftBreak | HardBreak | Emph | Strong | Strikeout | Subscript | Superscript | Math | Code | Span | Link | Image | RawInline | Note | Cite
+InlineNode = Str | Space | SoftBreak | HardBreak | Emph | Strong | Strikeout | Subscript | Superscript | Underline | SmallCaps | Quoted | Math | Code | Span | Link | Image | RawInline | Note | Cite
 
 
 @dataclass
@@ -108,6 +113,14 @@ def _task_state(paragraph: Paragraph) -> tuple[bool, bool, list[InlineNode]]:
     return True, mark == TASK_BOX_CHECKED, rest
 
 
+def _quote_marks(quote_type: str) -> tuple[str, str]:
+    if quote_type == 'SingleQuote':
+        return '‘', '’'
+    if quote_type == 'DoubleQuote':
+        return '“', '”'
+    raise HtmlWriterError(f'Unsupported quote type in current HTML writer slice: {quote_type}')
+
+
 def _plain_inline_text(inline: InlineNode) -> str:
     if isinstance(inline, Str):
         return inline.text
@@ -115,8 +128,11 @@ def _plain_inline_text(inline: InlineNode) -> str:
         return ' '
     if isinstance(inline, (SoftBreak, HardBreak)):
         return '\n'
-    if isinstance(inline, (Emph, Strong, Strikeout, Subscript, Superscript, Span, Link, Image)):
+    if isinstance(inline, (Emph, Strong, Strikeout, Subscript, Superscript, Underline, SmallCaps, Span, Link, Image)):
         return ''.join(_plain_inline_text(i) for i in inline.inlines)
+    if isinstance(inline, Quoted):
+        open_q, close_q = _quote_marks(inline.quote_type)
+        return open_q + ''.join(_plain_inline_text(i) for i in inline.inlines) + close_q
     if isinstance(inline, Math):
         return inline.text
     if isinstance(inline, Code):
@@ -170,6 +186,13 @@ def _render_inline(inline: InlineNode, ctx: _HtmlWriterContext) -> str:
         return f'<sub>{_render_inlines(inline.inlines, ctx)}</sub>'
     if isinstance(inline, Superscript):
         return f'<sup>{_render_inlines(inline.inlines, ctx)}</sup>'
+    if isinstance(inline, Underline):
+        return f'<span class="underline">{_render_inlines(inline.inlines, ctx)}</span>'
+    if isinstance(inline, SmallCaps):
+        return f'<span class="smallcaps">{_render_inlines(inline.inlines, ctx)}</span>'
+    if isinstance(inline, Quoted):
+        open_q, close_q = _quote_marks(inline.quote_type)
+        return _escape_text(open_q) + _render_inlines(inline.inlines, ctx) + _escape_text(close_q)
     if isinstance(inline, Math):
         cls = 'display' if inline.display else 'inline'
         delimiters = ('\\[\n', '\n\\]') if inline.display else ('\\(', '\\)')
@@ -241,6 +264,15 @@ def _render_paragraph(block: Paragraph, ctx: _HtmlWriterContext) -> str:
     return f'<p>{_render_inlines(block.inlines, ctx)}</p>'
 
 
+def _render_line_block(block: LineBlock, ctx: _HtmlWriterContext) -> str:
+    lines = ['<div class="line-block">']
+    for line in block.lines:
+        rendered = _render_inlines(line, ctx)
+        lines.append(f'<div class="line">{rendered if rendered else "<br />"}</div>')
+    lines.append('</div>')
+    return '\n'.join(lines)
+
+
 def _render_heading(block: Heading, ctx: _HtmlWriterContext) -> str:
     attr = _heading_attr(block, ctx)
     return f'<h{block.level}{_attrs_to_html(_attr_items(attr))}>{_render_inlines(block.inlines, ctx)}</h{block.level}>'
@@ -271,13 +303,13 @@ def _render_block_quote(block: BlockQuote, ctx: _HtmlWriterContext) -> str:
 
 
 
-
 def _item_is_compact(item: list[Block]) -> bool:
     return bool(item) and isinstance(item[0], Paragraph) and _is_simple_paragraph(item[0]) and all(isinstance(block, (BulletList, OrderedList)) for block in item[1:])
 
 
 def _list_is_loose(items: list[list[Block]]) -> bool:
     return any(not _item_is_compact(item) for item in items)
+
 
 def _render_list_item(item: list[Block], ctx: _HtmlWriterContext, *, force_paragraph: bool = False) -> str:
     if not item or not isinstance(item[0], Paragraph):
@@ -388,6 +420,10 @@ def _render_table(block: Table, ctx: _HtmlWriterContext) -> str:
 def _render_block(block: Block, ctx: _HtmlWriterContext) -> str:
     if isinstance(block, Paragraph):
         return _render_paragraph(block, ctx)
+    if isinstance(block, LineBlock):
+        return _render_line_block(block, ctx)
+    if isinstance(block, Null):
+        return ''
     if isinstance(block, Heading):
         return _render_heading(block, ctx)
     if isinstance(block, ThematicBreak):
