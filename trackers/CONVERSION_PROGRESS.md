@@ -1,10 +1,12 @@
 # Conversion progress
 
-This percentage is for the **governed active matrix**, which now includes both fine-grained implemented capabilities and coarse repo-scope inventory rows that have only been mapped.
+This percentage is for the **governed active matrix**, including the base capability matrix plus any admitted supplement matrices.
 It is therefore a more honest measure of how much of the admitted Pandoc surface is actually implemented and verified.
 
-- Active governed rows: **589**
-- Fine-grained capability rows: **487**
+- Base governed matrix: **CAPABILITY_MATRIX.csv**
+- Admitted supplement matrices: **1**
+- Active governed rows: **602**
+- Fine-grained capability rows: **500**
 - Coarse inventory rows: **102**
-- Implemented-or-better rows: **500/589** (**84.9%**)
-- Smoke-verified-or-better rows: **500/589** (**84.9%**)
+- Implemented-or-better rows: **513/602** (**85.2%**)
+- Smoke-verified-or-better rows: **500/602** (**83.1%**)
