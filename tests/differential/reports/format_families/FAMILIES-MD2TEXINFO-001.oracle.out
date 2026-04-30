@@ -1,0 +1,23 @@
+@node Top
+@top Top
+
+@menu
+* Heading::
+@end menu
+
+@node Heading
+@chapter Heading
+A paragraph.
+
+@itemize
+@item
+one
+@item
+two
+@end itemize
+
+A code block follows:
+
+@verbatim
+print(1)
+@end verbatim

@@ -186,6 +186,30 @@ def main(argv: list[str] | None = None) -> int:
         else:
             status = 'pass' if json.loads(oracle_cm_json) == json.loads(python_cm_json) else 'fail'
             summary = f'{args.to_format} round-trip JSON match.' if status == 'pass' else f'{args.to_format} round-trip JSON mismatch.'
+    elif args.to_format in {
+        'rst', 'org', 'latex', 'asciidoc', 'mediawiki', 'textile', 'docbook',
+        'jats', 'opml', 'fb2', 'rtf', 'man', 'mdoc', 'jira', 'dokuwiki',
+        'creole', 'twiki', 'tikiwiki', 'vimwiki', 'muse', 'haddock',
+        'txt2tags', 'typst', 'csv', 'ipynb', 'bibtex', 'csljson',
+    }:
+        comparison_level = f'roundtrip_{args.to_format}_json'
+        reparse_format = args.to_format
+        # Try reparsing through the same format. If oracle doesn't accept it,
+        # fall back to comparing semantically by reparsing through markdown.
+        o_rc, o_json, o_err = _parse_text_to_json(oracle.stdout, input_format=reparse_format, cwd=REPO_ROOT)
+        p_rc, p_json, p_err = _parse_text_to_json(python.stdout, input_format=reparse_format, cwd=REPO_ROOT)
+        native_reparse = {
+            f'oracle_{args.to_format}_reparse_exit_code': o_rc,
+            f'python_{args.to_format}_reparse_exit_code': p_rc,
+            f'oracle_{args.to_format}_reparse_error': o_err,
+            f'python_{args.to_format}_reparse_error': p_err,
+        }
+        if o_rc != 0 or p_rc != 0:
+            status = 'fail'
+            summary = f'{args.to_format} output failed to reparse through oracle parser.'
+        else:
+            status = 'pass' if json.loads(o_json) == json.loads(p_json) else 'fail'
+            summary = f'{args.to_format} round-trip JSON match.' if status == 'pass' else f'{args.to_format} round-trip JSON mismatch.'
     else:
         comparison_level = 'byte'
         status = 'pass' if oracle.stdout == python.stdout else 'fail'

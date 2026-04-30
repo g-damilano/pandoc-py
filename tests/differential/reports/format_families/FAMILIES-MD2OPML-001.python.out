@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+<head><title>pandoc_py</title></head>
+<body>
+<outline text="Heading">
+<outline text="A paragraph."/>
+<outline text="A code block follows:"/>
+</outline>
+</body></opml>

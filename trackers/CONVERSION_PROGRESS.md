@@ -4,9 +4,9 @@ This percentage is for the **governed active matrix**, including the base capabi
 It is therefore a more honest measure of how much of the admitted Pandoc surface is actually implemented and verified.
 
 - Base governed matrix: **CAPABILITY_MATRIX.csv**
-- Admitted supplement matrices: **1**
-- Active governed rows: **602**
-- Fine-grained capability rows: **500**
-- Coarse inventory rows: **102**
-- Implemented-or-better rows: **514/602** (**85.4%**)
-- Smoke-verified-or-better rows: **513/602** (**85.2%**)
+- Admitted supplement matrices: **2**
+- Active governed rows: **711**
+- Fine-grained capability rows: **608**
+- Coarse inventory rows: **103**
+- Implemented-or-better rows: **701/711** (**98.6%**)
+- Smoke-verified-or-better rows: **525/711** (**73.8%**)

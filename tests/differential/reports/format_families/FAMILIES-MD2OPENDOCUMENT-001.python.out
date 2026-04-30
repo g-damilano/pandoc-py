@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">
+<office:body><office:text>
+<text:h text:outline-level="1">Heading</text:h>
+<text:p>A paragraph.</text:p>
+<text:list>
+<text:list-item>
+<text:p>one</text:p>
+</text:list-item>
+<text:list-item>
+<text:p>two</text:p>
+</text:list-item>
+</text:list>
+<text:p>A code block follows:</text:p>
+<text:p text:style-name="Preformatted">print(1)</text:p>
+</office:text></office:body></office:document-content>

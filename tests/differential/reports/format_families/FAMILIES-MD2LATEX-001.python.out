@@ -1,0 +1,14 @@
+\section{Heading}
+
+A paragraph.
+
+\begin{itemize}
+\item one
+\item two
+\end{itemize}
+
+A code block follows:
+
+\begin{verbatim}
+print(1)
+\end{verbatim}
