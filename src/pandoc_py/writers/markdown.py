@@ -329,7 +329,7 @@ def _write_definition_list(block: DefinitionList, ctx: _MarkdownWriterContext) -
 def _write_div(block: Div, ctx: _MarkdownWriterContext) -> str:
     inner = _write_blocks(block.blocks, ctx).rstrip('\n')
     if not _attr_is_empty(block.attr):
-        return f":::{_write_attr(block.attr)}\n{inner}\n:::"
+        return f"::: {_write_attr(block.attr)}\n{inner}\n:::"
     return f":::\n{inner}\n:::"
 
 

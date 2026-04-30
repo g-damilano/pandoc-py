@@ -2,17 +2,26 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
+from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT / 'tests') not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / 'tests'))
+
+from _oracle import oracle_or_skip
 from pandoc_py.app import convert_text
 
 
 def _reparse_markdown_to_json(markdown_text: str) -> dict[str, object]:
     proc = subprocess.run(
-        ['/usr/bin/pandoc', '-f', 'markdown', '-t', 'json', '--wrap=none'],
+        [oracle_or_skip(), '-f', 'markdown', '-t', 'json', '--wrap=none'],
         input=markdown_text,
         text=True,
         capture_output=True,
         check=True,
+        encoding='utf-8',
+        errors='replace',
     )
     return json.loads(proc.stdout)
 

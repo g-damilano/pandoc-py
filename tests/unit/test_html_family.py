@@ -11,7 +11,10 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+if str(REPO_ROOT / 'tests') not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / 'tests'))
 
+from _oracle import oracle_or_skip
 from pandoc_py.ast import BlockQuote, BulletList, CodeBlock, Document, Heading, Image, Link, Paragraph, Space, Str, Table
 from pandoc_py.writers.html import write_html
 from scripts.run_differential import _normalized_html_repr
@@ -80,16 +83,20 @@ def _run_python_html(fixture: Path) -> subprocess.CompletedProcess[str]:
         cwd=str(REPO_ROOT),
         env=env,
         check=False,
+        encoding='utf-8',
+        errors='replace',
     )
 
 
 def _run_oracle_html(fixture: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ['/usr/bin/pandoc', str(fixture), '-f', 'markdown', '-t', 'html', '--mathjax', '--no-highlight', '--wrap=none'],
+        [oracle_or_skip(), str(fixture), '-f', 'markdown', '-t', 'html', '--mathjax', '--no-highlight', '--wrap=none'],
         text=True,
         capture_output=True,
         cwd=str(REPO_ROOT),
         check=False,
+        encoding='utf-8',
+        errors='replace',
     )
 
 

@@ -92,5 +92,32 @@ Only after all admitted reports above pass and are archived under `tests/differe
 ## Current honest status
 
 - verification bundle prepared: **yes**
-- oracle-backed reports archived: **no claim yet**
-- supplement rows promoted to `verified_smoke`: **not yet**
+- oracle-backed reports archived: **yes** (8/8 passed on 2026-04-30 against pandoc 3.8.2 on a Windows runner)
+- supplement rows promoted to `verified_smoke`: **yes** (all 13 target rows in `trackers/CAPABILITY_MATRIX_NATIVE_SUPPLEMENT.csv`)
+
+## Execution environment requirement
+
+The runbook above must satisfy:
+
+1. The oracle binary is reachable. As of the 2026-04-30 runner-portability infrastructure update, `scripts/run_differential.py` now resolves the oracle in this order: `PANDOC_ORACLE` env var, then `/usr/bin/pandoc`, then `C:\Program Files\Pandoc\pandoc.exe`, then `which pandoc`. Each report records the resolved oracle path and version.
+2. The oracle pandoc version is recorded in every archived report. Historical reports were produced with `pandoc 3.1.11.1`. Newer reports may be produced with later 3.x releases (for example `pandoc 3.8.2`); the report file itself is the source of truth for which version was used. A passing report at version `Y` is honest evidence that pandoc_py output matches pandoc `Y`'s output at the comparator level declared. It is **not** evidence about other versions.
+
+### Comparator-baseline policy (admitted 2026-04-30)
+
+- Each report records `oracle_version` directly. That string is authoritative for that report.
+- A row may be promoted from `implemented_unverified` to `verified_smoke` once at least one passing oracle-backed report exists for the row's comparator policy. The oracle version of that report becomes part of the row's evidence trail.
+- If a later run on a different oracle version produces a divergent result for the same fixture, that divergence must be archived alongside the previous report; it does not retroactively invalidate the earlier promotion but does add a known-divergence note to the supplement matrix.
+- The runner is therefore free to use any pandoc 3.x oracle that resolves on the host. Promotion remains gated only on a passing report at the declared comparator level.
+
+## Execution attempts
+
+### 2026-04-30 (Windows worktree, pandoc 3.8.2)
+
+- ran on a Windows worktree against `pandoc 3.8.2` at `C:\Program Files\Pandoc\pandoc.exe`
+- `scripts/run_differential.py` was updated to resolve the oracle via `PANDOC_ORACLE` env var → `/usr/bin/pandoc` → Windows default → `which pandoc`
+- fixtures revised to remove `Null` block (pandoc-types 1.23+ dropped it from the native parser); test for nullMeta alias also adjusted
+- HTML writer aligned to oracle 3.x output: `<u>` for Underline, flat `<br />`-separated line-block, no `class="header"`/`class="odd"` table row classes
+- native writer aligned to oracle: non-standalone mode emits block list only (drops meta), standalone emits Pandoc wrapper
+- Para vs Plain distinction added to AST as `Paragraph.is_plain: bool | None` for round-trip fidelity
+- all 8 reports passed; archived under `tests/differential/reports/smoke_native_input_widened/`
+- 13 supplement rows promoted from `implemented_unverified` to `verified_smoke`

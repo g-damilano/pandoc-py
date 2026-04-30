@@ -187,7 +187,7 @@ def _render_inline(inline: InlineNode, ctx: _HtmlWriterContext) -> str:
     if isinstance(inline, Superscript):
         return f'<sup>{_render_inlines(inline.inlines, ctx)}</sup>'
     if isinstance(inline, Underline):
-        return f'<span class="underline">{_render_inlines(inline.inlines, ctx)}</span>'
+        return f'<u>{_render_inlines(inline.inlines, ctx)}</u>'
     if isinstance(inline, SmallCaps):
         return f'<span class="smallcaps">{_render_inlines(inline.inlines, ctx)}</span>'
     if isinstance(inline, Quoted):
@@ -265,12 +265,9 @@ def _render_paragraph(block: Paragraph, ctx: _HtmlWriterContext) -> str:
 
 
 def _render_line_block(block: LineBlock, ctx: _HtmlWriterContext) -> str:
-    lines = ['<div class="line-block">']
-    for line in block.lines:
-        rendered = _render_inlines(line, ctx)
-        lines.append(f'<div class="line">{rendered if rendered else "<br />"}</div>')
-    lines.append('</div>')
-    return '\n'.join(lines)
+    rendered_lines = [_render_inlines(line, ctx) for line in block.lines]
+    body = '<br />\n'.join(rendered_lines)
+    return f'<div class="line-block">{body}</div>'
 
 
 def _render_heading(block: Heading, ctx: _HtmlWriterContext) -> str:
@@ -404,12 +401,12 @@ def _render_table(block: Table, ctx: _HtmlWriterContext) -> str:
     lines = ['<table>']
     if block.caption:
         lines.append(f'<caption>{_render_inlines(block.caption, ctx)}</caption>')
-    lines.extend(['<thead>', '<tr class="header">'])
+    lines.extend(['<thead>', '<tr>'])
     for idx, cell in enumerate(block.headers):
         lines.append(_render_table_cell('th', cell, block.aligns[idx], ctx))
     lines.extend(['</tr>', '</thead>', '<tbody>'])
-    for row_idx, row in enumerate(block.rows):
-        lines.append(f'<tr class="{"odd" if row_idx % 2 == 0 else "even"}">')
+    for row in block.rows:
+        lines.append('<tr>')
         for col_idx, cell in enumerate(row):
             lines.append(_render_table_cell('td', cell, block.aligns[col_idx], ctx))
         lines.append('</tr>')

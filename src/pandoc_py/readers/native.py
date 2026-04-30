@@ -376,9 +376,10 @@ def _parse_meta_value(value: Any) -> MetaValue:
         _expect(len(app.args) == 1 and isinstance(app.args[0], list), 'MetaList payload must wrap one meta-value list.')
         return MetaList([_parse_meta_value(item) for item in app.args[0]])
     if app.tag == 'MetaMap':
-        _expect(len(app.args) == 1 and isinstance(app.args[0], list), 'MetaMap payload must wrap one map-entry list.')
+        _expect(len(app.args) == 1, 'MetaMap payload must wrap one entry container.')
+        entries = _coerce_meta_map_entries(app.args[0])
         mapping: dict[str, MetaValue] = {}
-        for item in app.args[0]:
+        for item in entries:
             _expect(isinstance(item, tuple) and len(item) == 2, 'MetaMap entries must be (key, value) tuples.')
             key, raw_value = item
             _expect(isinstance(key, str), 'MetaMap keys must be strings.')
@@ -602,7 +603,9 @@ def _parse_block(value: Any) -> Any:
     app = _expect_app(value)
     if app.tag in {'Para', 'Plain'}:
         _expect(len(app.args) == 1, f'{app.tag} payload must wrap one inline list.')
-        return Paragraph(_parse_inlines(app.args[0]))
+        if app.tag == 'Plain':
+            return Paragraph(_parse_inlines(app.args[0]), is_plain=True)
+        return Paragraph(_parse_inlines(app.args[0]), is_plain=False)
     if app.tag == 'Header':
         _expect(len(app.args) == 3, 'Header payload must be [level, attr, inlines].')
         return Heading(level=int(app.args[0]), attr=_parse_attr(app.args[1]), inlines=_parse_inlines(app.args[2]))

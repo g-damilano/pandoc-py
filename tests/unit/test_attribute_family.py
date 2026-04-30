@@ -57,6 +57,6 @@ def test_write_markdown_for_attribute_family() -> None:
     heading = read_markdown('# Head {#h .hh k=v}\n')
     div = read_markdown('::: {.note #x key=val}\npara\n:::\n')
     link = read_markdown('[a](https://e.com){#l .c key=val}\n')
-    assert '# Head{#h .hh k="v"}' in write_markdown(heading)
-    assert ':::{#x .note key="val"}' in write_markdown(div)
+    assert '# Head {#h .hh k="v"}' in write_markdown(heading)
+    assert '::: {#x .note key="val"}' in write_markdown(div)
     assert '[a](https://e.com){#l .c key="val"}' in write_markdown(link)

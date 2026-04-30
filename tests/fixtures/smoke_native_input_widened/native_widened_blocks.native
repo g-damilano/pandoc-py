@@ -1,5 +1,4 @@
 [ Para [ Str "alpha" ]
 , LineBlock [ [ Str "one" ] , [] , [ Str "two" ] ]
 , Para [ Underline [ Str "u" ] , Space , SmallCaps [ Str "s" ] , Space , Quoted SingleQuote [ Str "q" ] ]
-, Null
 ]

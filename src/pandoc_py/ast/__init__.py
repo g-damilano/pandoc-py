@@ -150,6 +150,7 @@ class Block:
 @dataclass(frozen=True)
 class Paragraph(Block):
     inlines: list[Inline] = field(default_factory=list)
+    is_plain: bool | None = None
 
 
 @dataclass(frozen=True)

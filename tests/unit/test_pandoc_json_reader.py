@@ -33,7 +33,7 @@ def test_read_simple_paragraph_from_pandoc_json() -> None:
         'meta': {},
         'blocks': [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'alpha'}, {'t': 'Space'}, {'t': 'Str', 'c': 'beta'}]}],
     }))
-    assert document == Document(blocks=[Paragraph(inlines=[Str('alpha'), Space(), Str('beta')])])
+    assert document == Document(blocks=[Paragraph(inlines=[Str('alpha'), Space(), Str('beta')], is_plain=False)])
 
 
 def test_read_heading_link_and_autolink_from_pandoc_json() -> None:

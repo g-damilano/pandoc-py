@@ -10,7 +10,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = REPO_ROOT / 'src'
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
+if str(REPO_ROOT / 'tests') not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / 'tests'))
 
+from _oracle import oracle_or_skip
 from pandoc_py.ast import BlockQuote, BulletList, Code, CodeBlock, Document, Emph, HardBreak, Heading, Image, Link, Math, OrderedList, Paragraph, RawBlock, RawInline, SoftBreak, Space, Str, Strikeout, Strong, Subscript, Superscript, Table, ThematicBreak
 from pandoc_py.writers.pandoc_json import document_to_pandoc_json_payload
 
@@ -131,6 +134,7 @@ def test_cli_markdown_to_json_matches_pandoc_for_supported_slice() -> None:
     )
     env = dict(os.environ)
     env['PYTHONPATH'] = str(SRC_ROOT) + (os.pathsep + env['PYTHONPATH'] if env.get('PYTHONPATH') else '')
+    oracle_bin = oracle_or_skip()
     py = subprocess.run(
         [sys.executable, str(REPO_ROOT / 'scripts' / 'run_python_cli.py'), '-', '--from', 'markdown', '--to', 'json'],
         input=fixture,
@@ -139,14 +143,18 @@ def test_cli_markdown_to_json_matches_pandoc_for_supported_slice() -> None:
         cwd=str(REPO_ROOT),
         env=env,
         check=False,
+        encoding='utf-8',
+        errors='replace',
     )
     oracle = subprocess.run(
-        ['/usr/bin/pandoc', '-', '-f', 'markdown', '-t', 'json'],
+        [oracle_bin, '-', '-f', 'markdown', '-t', 'json'],
         input=fixture,
         text=True,
         capture_output=True,
         cwd=str(REPO_ROOT),
         check=False,
+        encoding='utf-8',
+        errors='replace',
     )
     assert py.returncode == 0, py.stderr
     assert oracle.returncode == 0, oracle.stderr

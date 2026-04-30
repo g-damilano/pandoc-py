@@ -24,7 +24,18 @@ def _write_output(text: str, output_path: str | None = None) -> None:
     Path(output_path).write_text(text, encoding='utf-8')
 
 
+def _ensure_utf8_streams() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding='utf-8', errors='replace')
+            except (ValueError, OSError):
+                pass
+
+
 def main(argv: list[str] | None = None) -> int:
+    _ensure_utf8_streams()
     try:
         options = parse_cli_options(argv)
     except OptionError as exc:

@@ -12,15 +12,33 @@ from lxml import etree, html
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = REPO_ROOT / 'src'
-ORACLE = '/usr/bin/pandoc'
+
+
+def _resolve_oracle() -> str:
+    env_oracle = os.environ.get('PANDOC_ORACLE')
+    if env_oracle:
+        return env_oracle
+    if Path('/usr/bin/pandoc').exists():
+        return '/usr/bin/pandoc'
+    win_default = Path(r'C:\Program Files\Pandoc\pandoc.exe')
+    if win_default.exists():
+        return str(win_default)
+    from shutil import which
+    discovered = which('pandoc')
+    if discovered:
+        return discovered
+    return '/usr/bin/pandoc'
+
+
+ORACLE = _resolve_oracle()
 
 
 def _run(cmd: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, text=True, capture_output=True, cwd=str(cwd), env=env, check=False)
+    return subprocess.run(cmd, text=True, capture_output=True, cwd=str(cwd), env=env, check=False, encoding='utf-8', errors='replace')
 
 
 def _version(cmd: list[str]) -> str:
-    proc = subprocess.run(cmd, text=True, capture_output=True, check=False)
+    proc = subprocess.run(cmd, text=True, capture_output=True, check=False, encoding='utf-8', errors='replace')
     text = (proc.stdout or proc.stderr).strip()
     return text.splitlines()[0] if text else 'unknown'
 
@@ -71,7 +89,7 @@ def _oracle_extra_args(to_format: str) -> list[str]:
 
 
 def _parse_text_to_json(text: str, *, input_format: str, cwd: Path) -> tuple[int, str, str]:
-    proc = subprocess.run([ORACLE, '-f', input_format, '-t', 'json', '--wrap=none'], input=text, text=True, capture_output=True, cwd=str(cwd), check=False)
+    proc = subprocess.run([ORACLE, '-f', input_format, '-t', 'json', '--wrap=none'], input=text, text=True, capture_output=True, cwd=str(cwd), check=False, encoding='utf-8', errors='replace')
     return proc.returncode, proc.stdout, proc.stderr
 
 

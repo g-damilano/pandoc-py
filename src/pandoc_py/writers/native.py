@@ -346,6 +346,6 @@ def _block_repr(block: BlockNode | Block, ctx: _NativeWriterContext, plain_in_li
 def write_native(document: Document, *, standalone: bool = False) -> str:
     ctx = _NativeWriterContext(source_format=document.source_format)
     blocks = _block_list(document.blocks, ctx)
-    if standalone or document.meta or document.source_format == 'native_pandoc':
+    if standalone:
         return f'Pandoc {_meta_repr(document.meta, ctx)} {blocks}\n'
     return blocks + '\n'
