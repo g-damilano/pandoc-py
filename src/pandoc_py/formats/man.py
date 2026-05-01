@@ -2,11 +2,15 @@
 from __future__ import annotations
 
 import re
+
 from pandoc_py.ast import (
     BulletList, CodeBlock, Document, Heading, OrderedList, Paragraph,
 )
 from pandoc_py.io import Reader, Writer, register_reader, register_writer
 from ._common import block_text_paragraphs, inlines_to_plain, text_to_inlines
+
+
+_BULLET_IP_RE = re.compile(r'^\.IP\s+\\?\(?bu\)?(?:\s+\d+)?\s*$')
 
 
 def _read_man(source: str) -> Document:
@@ -37,8 +41,37 @@ def _read_man(source: str) -> Document:
         if line.startswith('.PP') or line.startswith('.LP') or line.startswith('.P '):
             flush_para()
             i += 1; continue
-        if line.startswith('.\\"'):  # comment
+        if line.startswith('.\\"'):
             i += 1; continue
+        if _BULLET_IP_RE.match(line):
+            flush_para()
+            items = []
+            while i < len(lines) and _BULLET_IP_RE.match(lines[i]):
+                # next non-empty, non-roff line is the bullet content
+                j = i + 1
+                content_lines = []
+                while j < len(lines) and lines[j].strip() and not lines[j].startswith('.'):
+                    content_lines.append(lines[j].strip())
+                    j += 1
+                items.append([Paragraph(inlines=text_to_inlines(' '.join(content_lines)), is_plain=True)])
+                i = j
+            blocks.append(BulletList(items=items))
+            continue
+        if line.strip() == '.EX' or line.strip() == '.nf':
+            flush_para()
+            buf, j = [], i + 1
+            terminator = '.EE' if line.strip() == '.EX' else '.fi'
+            while j < len(lines) and lines[j].strip() != terminator:
+                buf.append(lines[j])
+                j += 1
+            blocks.append(CodeBlock(text='\n'.join(buf)))
+            i = j + 1
+            continue
+        if line.startswith('.IP') and not _BULLET_IP_RE.match(line):
+            # Plain indented paragraph; treat as paragraph break.
+            flush_para()
+            i += 1
+            continue
         if not line.strip():
             flush_para(); i += 1; continue
         para_buf.append(line)
@@ -59,12 +92,13 @@ def _write_man(document: Document) -> str:
         elif isinstance(block, (BulletList, OrderedList)):
             for item in block.items:
                 for sub in block_text_paragraphs(item):
-                    out.append('.IP \\(bu')
+                    out.append('.IP \\(bu 2')
                     out.append(sub)
         elif isinstance(block, CodeBlock):
-            out.append('.nf')
+            out.append('.IP')
+            out.append('.EX')
             for ln in block.text.split('\n'): out.append(ln)
-            out.append('.fi')
+            out.append('.EE')
     return '\n'.join(out) + '\n'
 
 

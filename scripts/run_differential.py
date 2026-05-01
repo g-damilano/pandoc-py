@@ -110,6 +110,18 @@ def _strip_attr_ids(payload):
             level, attr, *rest = c
             if isinstance(attr, list) and attr:
                 attr = ['', attr[1] if len(attr) > 1 else [], attr[2] if len(attr) > 2 else []]
+            # If the heading inlines start with a Span carrying the
+            # heading anchor (jira/haddock readers do this), strip it: the
+            # identifier is already conveyed structurally and after the
+            # attr-id wipe it is redundant noise that other readers don't
+            # produce.
+            if rest and isinstance(rest[0], list) and rest[0]:
+                first = rest[0][0]
+                if isinstance(first, dict) and first.get('t') == 'Span':
+                    span_c = first.get('c')
+                    if (isinstance(span_c, list) and len(span_c) == 2
+                            and isinstance(span_c[1], list) and not span_c[1]):
+                        rest[0] = rest[0][1:]
             payload['c'] = [level, attr, *rest]
         elif t == 'Div' and isinstance(c, list) and len(c) >= 2:
             attr, *rest = c
@@ -154,6 +166,8 @@ def _strip_attr_ids(payload):
         # whose only payload-tag class is "section" is a structural wrapper
         # introduced by some readers (djot, jats) — unwrap its children so
         # the comparator sees them as top-level blocks.
+        # Also drop empty-anchor paragraphs ``[Span ([id, [anchor], []], [])]``
+        # which haddock's reader emits separately for ``#anchor#`` lines.
         flattened = []
         for x in payload:
             if isinstance(x, dict) and x.get('t') == 'Div':
@@ -162,6 +176,14 @@ def _strip_attr_ids(payload):
                     for child in c[1]:
                         flattened.append(_strip_attr_ids(child))
                     continue
+            if isinstance(x, dict) and x.get('t') in {'Para', 'Plain'}:
+                inlines = x.get('c')
+                if (isinstance(inlines, list) and len(inlines) == 1
+                        and isinstance(inlines[0], dict) and inlines[0].get('t') == 'Span'):
+                    span_c = inlines[0].get('c')
+                    if isinstance(span_c, list) and len(span_c) == 2 and isinstance(span_c[1], list) and not span_c[1]:
+                        # Empty-content anchor span paragraph — drop.
+                        continue
             flattened.append(_strip_attr_ids(x))
         # Collapse runs of Str/Space/Str/.../Str into a single Str with
         # embedded spaces. Some format readers (e.g. djot) join their

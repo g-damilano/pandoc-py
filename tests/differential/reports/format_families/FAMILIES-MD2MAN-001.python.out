@@ -2,12 +2,13 @@
 .SH "Heading"
 .PP
 A paragraph.
-.IP \(bu
+.IP \(bu 2
 one
-.IP \(bu
+.IP \(bu 2
 two
 .PP
 A code block follows:
-.nf
+.IP
+.EX
 print(1)
-.fi
+.EE

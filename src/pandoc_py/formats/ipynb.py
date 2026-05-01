@@ -19,6 +19,14 @@ from ._common import inlines_to_plain, text_to_inlines
 
 
 def _read_ipynb(source: str) -> Document:
+    """Notebook reader.
+
+    Each cell becomes a Div carrying ``["cell", "<cell_type>"]`` classes,
+    matching pandoc's reader. Markdown cell content is parsed via the
+    markdown reader; code cell content becomes a CodeBlock with the
+    notebook's language as its info string.
+    """
+    from pandoc_py.ast import Attr, Div
     nb = json.loads(source)
     lang = nb.get('metadata', {}).get('language_info', {}).get('name', 'python')
     blocks = []
@@ -26,13 +34,19 @@ def _read_ipynb(source: str) -> Document:
         ctype = cell.get('cell_type')
         src = cell.get('source', '')
         if isinstance(src, list): src = ''.join(src)
+        cell_id = cell.get('id', '')
+        cell_attr = Attr(identifier=cell_id, classes=['cell', ctype or 'unknown'])
         if ctype == 'markdown':
             inner = read_markdown(src)
-            blocks.extend(inner.blocks)
+            blocks.append(Div(blocks=list(inner.blocks), attr=cell_attr))
         elif ctype == 'code':
-            blocks.append(CodeBlock(text=src.rstrip('\n'), info=lang))
+            code_attr = Attr(classes=[lang])
+            blocks.append(Div(
+                blocks=[CodeBlock(text=src.rstrip('\n'), info=lang, attr=code_attr)],
+                attr=cell_attr,
+            ))
         elif ctype == 'raw':
-            blocks.append(Paragraph(inlines=text_to_inlines(src)))
+            blocks.append(Div(blocks=[Paragraph(inlines=text_to_inlines(src))], attr=cell_attr))
     return Document(blocks=blocks, meta=nb.get('metadata', {}).get('pandoc', {}), source_format='ipynb')
 
 

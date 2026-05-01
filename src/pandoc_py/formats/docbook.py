@@ -5,32 +5,65 @@ import xml.etree.ElementTree as ET
 from html import escape
 
 from pandoc_py.ast import (
-    BulletList, CodeBlock, Document, Heading, OrderedList, Paragraph,
+    Attr, BulletList, CodeBlock, Document, Heading, OrderedList, Paragraph, ThematicBreak,
 )
 from pandoc_py.io import Reader, Writer, register_reader, register_writer
 from ._common import block_text_paragraphs, inlines_to_plain, text_to_inlines
 
 
+_DOCBOOK_NS = '{http://docbook.org/ns/docbook}'
+_XML_NS = '{http://www.w3.org/XML/1998/namespace}'
+
+
+def _ltag(el):
+    return el.tag.split('}')[-1] if isinstance(el.tag, str) else ''
+
+
 def _read_docbook(source: str) -> Document:
-    # very forgiving parser: walk all <para>, <title>, <programlisting>
+    """DocBook 5 reader: recursive section/para/list/programlisting walker."""
     root = ET.fromstring(source)
-    blocks = []
-    depth = 0
+    blocks: list = []
+
     def walk(el, depth):
-        tag = el.tag.split('}')[-1]
+        tag = _ltag(el)
         if tag in {'sect1', 'sect2', 'sect3', 'sect4', 'sect5', 'section'}:
-            title = el.find('title')
+            title = None
+            for child in el:
+                if _ltag(child) == 'title':
+                    title = child
+                    break
             if title is not None and title.text:
                 level = int(tag[-1]) if tag != 'section' else min(depth + 1, 6)
-                blocks.append(Heading(level=level, inlines=text_to_inlines(title.text)))
-        if tag == 'title' and (el.getparent() if hasattr(el, 'getparent') else None) is None:
-            pass
-        if tag == 'para' and el.text:
-            blocks.append(Paragraph(inlines=text_to_inlines(el.text)))
-        if tag == 'programlisting' and el.text:
+                anchor = el.attrib.get(f'{_XML_NS}id', '') or el.attrib.get('id', '')
+                attr = Attr(identifier=anchor) if anchor else Attr()
+                blocks.append(Heading(level=level, inlines=text_to_inlines(title.text), attr=attr))
+            for child in el:
+                if _ltag(child) != 'title':
+                    walk(child, depth + 1)
+        elif tag == 'para':
+            text = ''.join(el.itertext()).strip()
+            if text:
+                blocks.append(Paragraph(inlines=text_to_inlines(text)))
+        elif tag == 'itemizedlist':
+            items = []
+            for li in el:
+                if _ltag(li) == 'listitem':
+                    text = ''.join(li.itertext()).strip()
+                    items.append([Paragraph(inlines=text_to_inlines(text), is_plain=True)])
+            blocks.append(BulletList(items=items))
+        elif tag == 'orderedlist':
+            items = []
+            for li in el:
+                if _ltag(li) == 'listitem':
+                    text = ''.join(li.itertext()).strip()
+                    items.append([Paragraph(inlines=text_to_inlines(text), is_plain=True)])
+            blocks.append(OrderedList(items=items))
+        elif tag == 'programlisting' and el.text:
             blocks.append(CodeBlock(text=el.text))
-        for child in el:
-            walk(child, depth + 1)
+        else:
+            for child in el:
+                walk(child, depth + 1)
+
     walk(root, 0)
     return Document(blocks=blocks, source_format='docbook')
 
@@ -70,11 +103,13 @@ class DocbookReader(Reader):
         if isinstance(source, bytes): source = source.decode('utf-8')
         return _read_docbook(source)
 
+
 class DocbookWriter(Writer):
     format_name = 'docbook'
     aliases = ('docbook4', 'docbook5')
     def write(self, document, options=None):
         return _write_docbook(document)
+
 
 register_reader(DocbookReader())
 register_writer(DocbookWriter())

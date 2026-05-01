@@ -1,10 +1,13 @@
-\section{Heading}
+\section{Heading}\label{heading}
 
 A paragraph.
 
 \begin{itemize}
-\item one
-\item two
+\tightlist
+\item
+  one
+\item
+  two
 \end{itemize}
 
 A code block follows:

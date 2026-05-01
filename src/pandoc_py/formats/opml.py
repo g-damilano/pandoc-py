@@ -13,21 +13,45 @@ from ._common import inlines_to_plain, text_to_inlines
 
 
 def _read_opml(source: str) -> Document:
+    """OPML reader.
+
+    Each ``<outline>`` becomes a Heading; the optional ``_note`` attribute
+    is parsed back as embedded markdown (matching pandoc, whose OPML
+    writer stores paragraph/list/code body as ``_note`` markdown).
+    """
+    from pandoc_py.readers.markdown import read_markdown
     root = ET.fromstring(source)
     blocks = []
 
     def walk(node, depth):
         for outline in node.findall('outline'):
             text = outline.attrib.get('text', '') or outline.attrib.get('title', '')
-            blocks.append(Heading(level=min(depth, 6), inlines=text_to_inlines(text)))
+            if text:
+                blocks.append(Heading(level=min(depth, 6), inlines=text_to_inlines(text)))
             note = outline.attrib.get('_note')
             if note:
-                blocks.append(Paragraph(inlines=text_to_inlines(note)))
+                inner = read_markdown(note)
+                blocks.extend(inner.blocks)
             walk(outline, depth + 1)
 
     body = root.find('body')
     if body is not None:
         walk(body, 1)
+    elif root.tag == 'outline':
+        # Bare outline element (pandoc opml fragment without an explicit
+        # <body>): treat the root itself as one outline at depth 1.
+        text = root.attrib.get('text', '') or root.attrib.get('title', '')
+        if text:
+            blocks.append(Heading(level=1, inlines=text_to_inlines(text)))
+        note = root.attrib.get('_note')
+        if note:
+            from pandoc_py.readers.markdown import read_markdown
+            inner = read_markdown(note)
+            blocks.extend(inner.blocks)
+        walk(root, 2)
+    else:
+        # Tolerant fallback: walk any nested outline.
+        walk(root, 1)
     return Document(blocks=blocks, source_format='opml')
 
 

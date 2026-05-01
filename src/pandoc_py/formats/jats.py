@@ -1,25 +1,58 @@
-"""JATS reader/writer — constrained slice (delegates structurally to DocBook)."""
+"""JATS reader/writer — constrained slice."""
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 from html import escape
 
 from pandoc_py.ast import (
-    BulletList, CodeBlock, Document, Heading, OrderedList, Paragraph,
+    Attr, BulletList, CodeBlock, Document, Heading, OrderedList, Paragraph,
 )
 from pandoc_py.io import Reader, Writer, register_reader, register_writer
 from ._common import block_text_paragraphs, inlines_to_plain, text_to_inlines
 
 
+def _ltag(el):
+    return el.tag.split('}')[-1] if isinstance(el.tag, str) else ''
+
+
 def _read_jats(source: str) -> Document:
+    """JATS reader: walk <sec>/<title>/<p>/<list>/<code>."""
     root = ET.fromstring(source)
-    blocks = []
-    for el in root.iter():
-        tag = el.tag.split('}')[-1]
-        if tag == 'title' and el.text:
-            blocks.append(Heading(level=1, inlines=text_to_inlines(el.text)))
-        elif tag == 'p' and el.text:
-            blocks.append(Paragraph(inlines=text_to_inlines(el.text)))
+    blocks: list = []
+
+    def walk(el, depth):
+        tag = _ltag(el)
+        if tag == 'sec':
+            title = None
+            for child in el:
+                if _ltag(child) == 'title':
+                    title = child; break
+            if title is not None and title.text:
+                anchor = el.attrib.get('id', '')
+                attr = Attr(identifier=anchor) if anchor else Attr()
+                blocks.append(Heading(level=min(depth + 1, 6), inlines=text_to_inlines(title.text), attr=attr))
+            for child in el:
+                if _ltag(child) != 'title':
+                    walk(child, depth + 1)
+        elif tag == 'p':
+            text = ''.join(el.itertext()).strip()
+            if text:
+                blocks.append(Paragraph(inlines=text_to_inlines(text)))
+        elif tag == 'list':
+            list_type = el.attrib.get('list-type', 'bullet')
+            items = []
+            for li in el:
+                if _ltag(li) == 'list-item':
+                    text = ''.join(li.itertext()).strip()
+                    items.append([Paragraph(inlines=text_to_inlines(text), is_plain=True)])
+            blocks.append(BulletList(items=items) if list_type == 'bullet' else OrderedList(items=items))
+        elif tag in {'preformat', 'code'} and el.text:
+            blocks.append(CodeBlock(text=el.text))
+        else:
+            for child in el:
+                walk(child, depth + 1)
+
+    walk(root, 0)
     return Document(blocks=blocks, source_format='jats')
 
 
@@ -52,11 +85,13 @@ class JatsReader(Reader):
         if isinstance(source, bytes): source = source.decode('utf-8')
         return _read_jats(source)
 
+
 class JatsWriter(Writer):
     format_name = 'jats'
     aliases = ('jats_archiving', 'jats_articleauthoring', 'jats_publishing')
     def write(self, document, options=None):
         return _write_jats(document)
+
 
 register_reader(JatsReader())
 register_writer(JatsWriter())
