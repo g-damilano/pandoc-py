@@ -1,3 +1,4 @@
+{#heading}
 # Heading
 
 A paragraph.
@@ -7,6 +8,6 @@ A paragraph.
 
 A code block follows:
 
-~~~
+```
 print(1)
-~~~
+```

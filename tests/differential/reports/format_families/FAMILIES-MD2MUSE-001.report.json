@@ -25,7 +25,7 @@
   "oracle_exit_code": 0,
   "python_exit_code": 0,
   "status": "pass",
-  "summary": "muse round-trip JSON match.",
+  "summary": "muse round-trip JSON match (normalized).",
   "oracle_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2MUSE-001.oracle.out",
   "python_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2MUSE-001.python.out",
   "oracle_stderr_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2MUSE-001.oracle.err",

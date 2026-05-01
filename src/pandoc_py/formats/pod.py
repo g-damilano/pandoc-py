@@ -56,10 +56,15 @@ def _write_pod(document: Document) -> str:
             out.append(inlines_to_plain(block.inlines)); out.append('')
         elif isinstance(block, (BulletList, OrderedList)):
             out.append('=over')
+            out.append('')
             for item in block.items:
                 for sub in block_text_paragraphs(item):
-                    out.append(f'=item * {sub}')
-            out.append('=back'); out.append('')
+                    out.append(f'=item *')
+                    out.append('')
+                    out.append(sub)
+                    out.append('')
+            out.append('=back')
+            out.append('')
         elif isinstance(block, CodeBlock):
             for ln in block.text.split('\n'): out.append(' ' + ln)
             out.append('')

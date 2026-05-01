@@ -7,5 +7,6 @@ register(FormatConfig(
     bullet_prefix='* ',
     ordered_prefix=lambda n: '# ',
     quote_prefix='bq. ',
-    code_block=lambda info, body: ['bc.. ', *body.split('\n'), 'p.'],
+    # Pandoc-aligned: bc. on a single line with content (line-based, no closer).
+    code_block=lambda info, body: [f'bc. {body}'],
 ))

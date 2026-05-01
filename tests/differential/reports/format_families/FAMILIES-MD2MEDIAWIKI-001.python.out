@@ -1,3 +1,4 @@
+<span id="heading"></span>
 = Heading =
 
 A paragraph.
@@ -7,6 +8,4 @@ A paragraph.
 
 A code block follows:
 
-<pre>
-print(1)
-</pre>
+<pre>print(1)</pre>

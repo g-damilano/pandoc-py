@@ -7,6 +7,6 @@ A paragraph.
 
 A code block follows:
 
-#+begin_src
+#+begin_example
 print(1)
-#+end_src
+#+end_example

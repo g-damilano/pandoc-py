@@ -4,8 +4,11 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from html import escape
 
-from pandoc_py.ast import Document, Heading, Paragraph
+from pandoc_py.ast import (
+    BulletList, CodeBlock, Document, Heading, OrderedList, Paragraph, ThematicBreak,
+)
 from pandoc_py.io import Reader, Writer, register_reader, register_writer
+from pandoc_py.writers.markdown import write_markdown
 from ._common import inlines_to_plain, text_to_inlines
 
 
@@ -28,25 +31,42 @@ def _read_opml(source: str) -> Document:
     return Document(blocks=blocks, source_format='opml')
 
 
+def _attr_escape(text: str) -> str:
+    return (text.replace('&', '&amp;')
+                .replace('"', '&quot;')
+                .replace('<', '&lt;')
+                .replace('>', '&gt;')
+                .replace('\n', '&#10;'))
+
+
 def _write_opml(document: Document) -> str:
     parts = ['<?xml version="1.0" encoding="UTF-8"?>',
              '<opml version="2.0">',
-             '<head><title>pandoc_py</title></head>',
+             '<head><title></title></head>',
              '<body>']
-    depth = 0
-    last_level = 0
-    for block in document.blocks:
+    blocks = list(document.blocks)
+    i = 0
+    while i < len(blocks):
+        block = blocks[i]
         if isinstance(block, Heading):
-            while last_level >= block.level and depth > 0:
-                parts.append('</outline>')
-                depth -= 1; last_level -= 1
-            parts.append(f'<outline text="{escape(inlines_to_plain(block.inlines), quote=True)}">')
-            depth += 1; last_level = block.level
-        elif isinstance(block, Paragraph):
-            parts.append(f'<outline text="{escape(inlines_to_plain(block.inlines), quote=True)}"/>')
-    while depth > 0:
-        parts.append('</outline>'); depth -= 1
-    parts.append('</body></opml>')
+            text = inlines_to_plain(block.inlines)
+            j = i + 1
+            body_blocks = []
+            while j < len(blocks) and not isinstance(blocks[j], Heading):
+                body_blocks.append(blocks[j])
+                j += 1
+            note_md = write_markdown(Document(blocks=body_blocks)) if body_blocks else ''
+            note_md = note_md.rstrip('\n')
+            attrs = f'text="{_attr_escape(text)}"'
+            if note_md:
+                attrs += f' _note="{_attr_escape(note_md)}"'
+            parts.append(f'<outline {attrs}>')
+            parts.append('</outline>')
+            i = j
+        else:
+            i += 1
+    parts.append('</body>')
+    parts.append('</opml>')
     return '\n'.join(parts) + '\n'
 
 

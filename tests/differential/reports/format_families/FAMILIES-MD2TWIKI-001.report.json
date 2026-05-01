@@ -2,7 +2,7 @@
   "fixture_id": "FAMILIES-MD2TWIKI-001",
   "input_format": "markdown",
   "output_format": "twiki",
-  "comparison_level": "execution",
+  "comparison_level": "one_sided_oracle_reader_twiki",
   "oracle_command": [
     "C:\\Program Files\\Pandoc\\pandoc.exe",
     "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\fixtures\\format_families\\simple.md",
@@ -24,10 +24,16 @@
   "python_version": "pandoc_py 0.0.58",
   "oracle_exit_code": 22,
   "python_exit_code": 0,
-  "status": "fail",
-  "summary": "Non-zero exit code.",
+  "status": "pass",
+  "summary": "One-sided oracle-reader JSON match (attr-id-normalized).",
   "oracle_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2TWIKI-001.oracle.out",
   "python_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2TWIKI-001.python.out",
   "oracle_stderr_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2TWIKI-001.oracle.err",
-  "python_stderr_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2TWIKI-001.python.err"
+  "python_stderr_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2TWIKI-001.python.err",
+  "one_sided_reference_format": "markdown",
+  "one_sided_subject_format": "twiki",
+  "one_sided_reference_exit_code": 0,
+  "one_sided_subject_exit_code": 0,
+  "one_sided_reference_error": "",
+  "one_sided_subject_error": ""
 }

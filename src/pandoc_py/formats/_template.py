@@ -28,7 +28,7 @@ class FormatConfig:
     aliases: tuple[str, ...] = ()
     heading: Callable[[int, str], str] = lambda lvl, text: '#' * lvl + ' ' + text
     bullet_prefix: str = '- '
-    ordered_prefix: Callable[[int], str] = lambda n: f'{n}. '
+    ordered_prefix: Callable[[int], str] = lambda n: f'{n}.  '
     quote_prefix: str = '> '
     code_block: Callable[[str, str], list[str]] = lambda info, body: [f'```{info}'.rstrip(), *body.split('\n'), '```']
     thematic: str = '---'

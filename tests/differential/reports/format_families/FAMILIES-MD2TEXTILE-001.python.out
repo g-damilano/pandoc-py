@@ -7,6 +7,4 @@ A paragraph.
 
 A code block follows:
 
-bc.. 
-print(1)
-p.
+bc. print(1)

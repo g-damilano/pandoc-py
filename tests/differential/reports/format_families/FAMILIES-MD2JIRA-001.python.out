@@ -1,5 +1,4 @@
-h1. Heading
-
+h1. {anchor:heading}Heading
 A paragraph.
 
 * one
@@ -7,6 +6,5 @@ A paragraph.
 
 A code block follows:
 
-{code}
-print(1)
-{code}
+{noformat}
+print(1){noformat}

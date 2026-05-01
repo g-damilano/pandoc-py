@@ -7,7 +7,17 @@ and the slice they admit is consistent.
 from __future__ import annotations
 
 import re
+import unicodedata
 from typing import Iterable
+
+
+def slugify_heading(text: str) -> str:
+    """Mimic pandoc's automatic heading-id generation for a plain heading text."""
+    normalized = unicodedata.normalize('NFKD', text)
+    ascii_text = normalized.encode('ascii', 'ignore').decode('ascii')
+    lowered = ascii_text.lower()
+    slug = re.sub(r'[^a-z0-9.]+', '-', lowered).strip('-')
+    return slug or 'section'
 
 from pandoc_py.ast import (
     Block,

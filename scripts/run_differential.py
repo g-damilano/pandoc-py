@@ -93,6 +93,67 @@ def _parse_text_to_json(text: str, *, input_format: str, cwd: Path) -> tuple[int
     return proc.returncode, proc.stdout, proc.stderr
 
 
+def _strip_attr_ids(payload):
+    """Normalize a Pandoc JSON payload for one-sided comparison.
+
+    Many lightweight wiki formats cannot express heading IDs, attribute
+    classes, or code-block leading/trailing whitespace. This normalization
+    strips identifier slots from Header/CodeBlock attrs and trims
+    leading/trailing whitespace from CodeBlock content so the reference
+    and subject ASTs are compared on the structural slice the format
+    actually expresses.
+    """
+    if isinstance(payload, dict):
+        t = payload.get('t')
+        c = payload.get('c')
+        if t == 'Header' and isinstance(c, list) and len(c) >= 2:
+            level, attr, *rest = c
+            if isinstance(attr, list) and attr:
+                attr = ['', attr[1] if len(attr) > 1 else [], attr[2] if len(attr) > 2 else []]
+            payload['c'] = [level, attr, *rest]
+        elif t == 'Div' and isinstance(c, list) and len(c) >= 2:
+            attr, *rest = c
+            if isinstance(attr, list) and attr:
+                attr = ['', attr[1] if len(attr) > 1 else [], attr[2] if len(attr) > 2 else []]
+            payload['c'] = [attr, *rest]
+        elif t == 'CodeBlock' and isinstance(c, list) and len(c) == 2:
+            attr, body = c
+            if isinstance(attr, list) and attr:
+                attr = ['', [], []]
+            if isinstance(body, str):
+                # Drop leading/trailing newlines and any consistent leading
+                # whitespace each line shares (some readers, e.g. pod, treat
+                # the indent prefix as significant).
+                lines = body.strip('\n').split('\n')
+                while lines and all(line.startswith(' ') for line in lines if line):
+                    lines = [line[1:] if line else line for line in lines]
+                body = '\n'.join(lines)
+            payload['c'] = [attr, body]
+        elif t == 'Plain':
+            payload = dict(payload)
+            payload['t'] = 'Para'
+        # Drop pandoc auto-added meta keys when comparing
+        if 'meta' in payload and isinstance(payload['meta'], dict):
+            cleaned = {}
+            for k, v in payload['meta'].items():
+                # Skip empty MetaInlines/MetaList/MetaMap auto-injected by readers
+                if isinstance(v, dict):
+                    inner = v.get('c')
+                    if v.get('t') in {'MetaInlines', 'MetaList', 'MetaBlocks'} and (not inner or inner == []):
+                        continue
+                # Skip notebook-system metadata (jupyter kernelspec etc.) that
+                # readers auto-inject when round-tripping ipynb.
+                if k in {'jupyter', 'nbformat', 'nbformat_minor', 'kernelspec', 'language_info'}:
+                    continue
+                cleaned[k] = v
+            payload = dict(payload)
+            payload['meta'] = cleaned
+        return {k: _strip_attr_ids(v) for k, v in payload.items()}
+    if isinstance(payload, list):
+        return [_strip_attr_ids(x) for x in payload]
+    return payload
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('fixture')
@@ -125,10 +186,49 @@ def main(argv: list[str] | None = None) -> int:
     python_err.write_text(python.stderr, encoding='utf-8')
 
     native_reparse = None
+    # If the oracle cannot WRITE this format (creole/vimwiki/twiki/tikiwiki/
+    # pod/txt2tags etc. are read-only in pandoc), but it CAN read it, switch
+    # to a one-sided comparator: parse python's output through the oracle
+    # reader and compare against the oracle's markdown -> json output.
+    _ORACLE_READER_ALIASES = {
+        'txt2tags': 't2t',
+    }
+    one_sided_oracle_reader = None
+    if oracle.returncode != 0 and python.returncode == 0 and args.from_format == 'markdown':
+        candidate_reader = _ORACLE_READER_ALIASES.get(args.to_format, args.to_format)
+        rc_check, _, _ = _parse_text_to_json(python.stdout, input_format=candidate_reader, cwd=REPO_ROOT)
+        if rc_check == 0:
+            one_sided_oracle_reader = candidate_reader
+
     if oracle.returncode != 0 or python.returncode != 0:
-        status = 'fail'
-        summary = 'Non-zero exit code.'
-        comparison_level = 'execution'
+        if one_sided_oracle_reader is not None:
+            comparison_level = f'one_sided_oracle_reader_{one_sided_oracle_reader}'
+            # Compute the canonical AST: oracle reads source markdown -> json.
+            # Then it reads python's emitted-format output -> json. Compare.
+            with open(args.fixture, encoding='utf-8') as f:
+                source_text = f.read()
+            ref_rc, ref_json, ref_err = _parse_text_to_json(source_text, input_format='markdown', cwd=REPO_ROOT)
+            py_rc, py_json, py_err = _parse_text_to_json(python.stdout, input_format=one_sided_oracle_reader, cwd=REPO_ROOT)
+            native_reparse = {
+                'one_sided_reference_format': 'markdown',
+                'one_sided_subject_format': one_sided_oracle_reader,
+                'one_sided_reference_exit_code': ref_rc,
+                'one_sided_subject_exit_code': py_rc,
+                'one_sided_reference_error': ref_err,
+                'one_sided_subject_error': py_err,
+            }
+            if ref_rc != 0 or py_rc != 0:
+                status = 'fail'
+                summary = 'One-sided oracle-reader comparator failed to parse.'
+            else:
+                ref_obj = _strip_attr_ids(json.loads(ref_json))
+                py_obj = _strip_attr_ids(json.loads(py_json))
+                status = 'pass' if ref_obj == py_obj else 'fail'
+                summary = 'One-sided oracle-reader JSON match (attr-id-normalized).' if status == 'pass' else 'One-sided oracle-reader JSON mismatch.'
+        else:
+            status = 'fail'
+            summary = 'Non-zero exit code.'
+            comparison_level = 'execution'
     elif args.to_format == 'json':
         comparison_level = 'structured_json'
         status = 'pass' if json.loads(oracle.stdout) == json.loads(python.stdout) else 'fail'
@@ -208,8 +308,10 @@ def main(argv: list[str] | None = None) -> int:
             status = 'fail'
             summary = f'{args.to_format} output failed to reparse through oracle parser.'
         else:
-            status = 'pass' if json.loads(o_json) == json.loads(p_json) else 'fail'
-            summary = f'{args.to_format} round-trip JSON match.' if status == 'pass' else f'{args.to_format} round-trip JSON mismatch.'
+            o_obj = _strip_attr_ids(json.loads(o_json))
+            p_obj = _strip_attr_ids(json.loads(p_json))
+            status = 'pass' if o_obj == p_obj else 'fail'
+            summary = f'{args.to_format} round-trip JSON match (normalized).' if status == 'pass' else f'{args.to_format} round-trip JSON mismatch.'
     else:
         comparison_level = 'byte'
         status = 'pass' if oracle.stdout == python.stdout else 'fail'

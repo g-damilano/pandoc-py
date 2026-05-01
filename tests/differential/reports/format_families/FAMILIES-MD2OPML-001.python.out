@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <opml version="2.0">
-<head><title>pandoc_py</title></head>
+<head><title></title></head>
 <body>
-<outline text="Heading">
-<outline text="A paragraph."/>
-<outline text="A code block follows:"/>
+<outline text="Heading" _note="A paragraph.&#10;&#10;- one&#10;- two&#10;&#10;A code block follows:&#10;&#10;    print(1)">
 </outline>
-</body></opml>
+</body>
+</opml>

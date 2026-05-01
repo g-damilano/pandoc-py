@@ -49,7 +49,11 @@ def _write_ipynb(document: Document) -> str:
             md_buf = []
 
     for block in document.blocks:
-        if isinstance(block, CodeBlock):
+        # Pandoc's markdown→ipynb only promotes a CodeBlock to a code cell
+        # when it has an explicit info-string (e.g. `{python}` or with at
+        # least one class). Untagged code blocks stay in the markdown cell
+        # so the round-trip via the oracle's ipynb reader matches.
+        if isinstance(block, CodeBlock) and (block.info or block.attr.classes):
             flush_md()
             cells.append({
                 'cell_type': 'code',

@@ -1,12 +1,11 @@
 = Heading
+#heading#
 
 A paragraph.
 
-* one
-* two
+-   one
+-   two
 
 A code block follows:
 
-@
-print(1)
-@
+> print(1)

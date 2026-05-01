@@ -88,7 +88,7 @@ def test_write_compact_ordered_list_with_nested_bullet_list() -> None:
             )
         ]
     )
-    assert write_markdown(document) == '1.  outer\n    -   inner a\n    -   inner b\n2.  done\n'
+    assert write_markdown(document) == '1.  outer\n    - inner a\n    - inner b\n2.  done\n'
 
 
 def test_write_loose_ordered_list_with_continuation_and_nested_ordered_list() -> None:

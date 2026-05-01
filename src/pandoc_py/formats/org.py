@@ -83,9 +83,13 @@ def _write_org(document: Document) -> str:
             for sub in block_text_paragraphs(block.blocks): out.append(sub)
             out.append('#+end_quote'); out.append('')
         elif isinstance(block, CodeBlock):
-            out.append(f'#+begin_src {block.info}'.rstrip())
+            # Pandoc-aligned: empty-info code uses example, non-empty uses src.
+            if block.info:
+                out.append(f'#+begin_src {block.info}')
+            else:
+                out.append('#+begin_example')
             for ln in block.text.split('\n'): out.append(ln)
-            out.append('#+end_src'); out.append('')
+            out.append('#+end_src' if block.info else '#+end_example'); out.append('')
         elif isinstance(block, ThematicBreak):
             out.append('-' * 32); out.append('')
     return '\n'.join(out).rstrip('\n') + '\n'
