@@ -11,6 +11,17 @@ from ._common import block_text_paragraphs, inlines_to_plain, text_to_inlines
 
 
 def _read_org(source: str) -> Document:
+    """Org reader admitting :PROPERTIES: drawer for heading anchors.
+
+    A heading line ``* Title`` followed by ::
+
+        :PROPERTIES:
+        :CUSTOM_ID: anchor
+        :END:
+
+    becomes a Heading with attr.identifier='anchor'.
+    """
+    from pandoc_py.ast import Attr
     text = source.replace('\r\n', '\n').replace('\r', '\n')
     lines = text.split('\n')
     blocks = []
@@ -21,15 +32,40 @@ def _read_org(source: str) -> Document:
             i += 1; continue
         m = re.match(r'^(\*+)\s+(.*)$', line)
         if m:
-            blocks.append(Heading(level=len(m.group(1)), inlines=text_to_inlines(m.group(2))))
-            i += 1; continue
-        if line.lstrip().lower().startswith('#+begin_src'):
+            level = len(m.group(1))
+            heading_text = m.group(2)
+            # Look for an immediately following :PROPERTIES: drawer.
+            j = i + 1
+            anchor = ''
+            if j < len(lines) and lines[j].strip() == ':PROPERTIES:':
+                j += 1
+                while j < len(lines) and lines[j].strip() != ':END:':
+                    pm = re.match(r'^\s*:CUSTOM_ID:\s+(\S+)', lines[j])
+                    if pm:
+                        anchor = pm.group(1)
+                    j += 1
+                if j < len(lines) and lines[j].strip() == ':END:':
+                    j += 1
+                i = j
+            else:
+                i += 1
+            attr = Attr(identifier=anchor) if anchor else Attr()
+            blocks.append(Heading(level=level, inlines=text_to_inlines(heading_text), attr=attr))
+            continue
+        low = line.lstrip().lower()
+        if low.startswith('#+begin_src'):
             info = line.split(None, 1)
             lang = info[1] if len(info) > 1 else ''
             buf, j = [], i + 1
             while j < len(lines) and not lines[j].lstrip().lower().startswith('#+end_src'):
                 buf.append(lines[j]); j += 1
             blocks.append(CodeBlock(text='\n'.join(buf), info=lang))
+            i = j + 1; continue
+        if low.startswith('#+begin_example'):
+            buf, j = [], i + 1
+            while j < len(lines) and not lines[j].lstrip().lower().startswith('#+end_example'):
+                buf.append(lines[j]); j += 1
+            blocks.append(CodeBlock(text='\n'.join(buf), info=''))
             i = j + 1; continue
         m = re.match(r'^[-+]\s+(.*)$', line)
         if m:

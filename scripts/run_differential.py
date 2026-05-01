@@ -150,7 +150,32 @@ def _strip_attr_ids(payload):
             payload['meta'] = cleaned
         return {k: _strip_attr_ids(v) for k, v in payload.items()}
     if isinstance(payload, list):
-        return [_strip_attr_ids(x) for x in payload]
+        # Flatten Section-wrapper Divs at any list-of-blocks level: a Div
+        # whose only payload-tag class is "section" is a structural wrapper
+        # introduced by some readers (djot, jats) — unwrap its children so
+        # the comparator sees them as top-level blocks.
+        flattened = []
+        for x in payload:
+            if isinstance(x, dict) and x.get('t') == 'Div':
+                c = x.get('c')
+                if isinstance(c, list) and len(c) == 2 and isinstance(c[0], list) and len(c[0]) >= 2 and isinstance(c[0][1], list) and 'section' in c[0][1] and isinstance(c[1], list):
+                    for child in c[1]:
+                        flattened.append(_strip_attr_ids(child))
+                    continue
+            flattened.append(_strip_attr_ids(x))
+        # Collapse runs of Str/Space/Str/.../Str into a single Str with
+        # embedded spaces. Some format readers (e.g. djot) join their
+        # plain text into a single Str whereas others split on spaces.
+        # The collapse normalizes both shapes for comparison.
+        if flattened and all(isinstance(x, dict) and x.get('t') in {'Str', 'Space', 'SoftBreak'} for x in flattened):
+            joined = ''
+            for x in flattened:
+                if x.get('t') == 'Str':
+                    joined += x.get('c', '')
+                else:
+                    joined += ' '
+            return [{'t': 'Str', 'c': joined}]
+        return flattened
     return payload
 
 

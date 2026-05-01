@@ -22,7 +22,7 @@
     "native"
   ],
   "oracle_version": "pandoc 3.8.2",
-  "python_version": "pandoc_py 0.0.57",
+  "python_version": "pandoc_py 0.0.58",
   "oracle_exit_code": 0,
   "python_exit_code": 0,
   "status": "pass",

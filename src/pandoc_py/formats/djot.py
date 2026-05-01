@@ -10,7 +10,38 @@ from ._common import block_text_paragraphs, inlines_to_plain, parse_simple_block
 
 
 def _read_djot(source: str) -> Document:
-    return Document(blocks=parse_simple_blocks(source), source_format='djot')
+    """Djot reader admitting heading-anchor `{#id}` line above heading.
+
+    pandoc's djot writer (and djot itself) emits attribute lines like
+    ``{#heading}`` immediately preceding a heading. We collect them and
+    attach to the next Heading's identifier.
+    """
+    import re as _re
+    from pandoc_py.ast import Attr, Heading
+    text = source.replace('\r\n', '\n').replace('\r', '\n')
+    lines = text.split('\n')
+    out_lines = []
+    pending_attr_lines: list[tuple[int, str]] = []  # (line index in out_lines, attr id)
+    for line in lines:
+        m = _re.match(r'^\{#([^}\s]+)\}\s*$', line)
+        if m:
+            pending_attr_lines.append((len(out_lines), m.group(1)))
+            continue
+        out_lines.append(line)
+    blocks = parse_simple_blocks('\n'.join(out_lines))
+    # Walk blocks; for each Heading whose preceding source line had an attr
+    # marker, set identifier.
+    pending_ids = [aid for _idx, aid in pending_attr_lines]
+    pid = 0
+    final_blocks = []
+    for block in blocks:
+        if isinstance(block, Heading) and pid < len(pending_ids):
+            attr = Attr(identifier=pending_ids[pid], classes=list(block.attr.classes), attributes=list(block.attr.attributes))
+            final_blocks.append(Heading(level=block.level, inlines=block.inlines, attr=attr))
+            pid += 1
+        else:
+            final_blocks.append(block)
+    return Document(blocks=final_blocks, source_format='djot')
 
 
 def _write_djot(document: Document) -> str:
