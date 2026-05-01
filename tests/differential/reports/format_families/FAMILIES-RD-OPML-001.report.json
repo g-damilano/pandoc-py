@@ -2,7 +2,7 @@
   "fixture_id": "FAMILIES-RD-OPML-001",
   "input_format": "opml",
   "output_format": "json",
-  "comparison_level": "structured_json",
+  "comparison_level": "structured_json_normalized_opml",
   "oracle_command": [
     "C:\\Program Files\\Pandoc\\pandoc.exe",
     "C:\\Users\\giaco\\AppData\\Local\\Temp\\sample.opml",

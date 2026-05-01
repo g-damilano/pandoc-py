@@ -2,7 +2,7 @@
   "fixture_id": "FAMILIES-RD-HADDOCK-001",
   "input_format": "haddock",
   "output_format": "json",
-  "comparison_level": "structured_json",
+  "comparison_level": "structured_json_normalized_haddock",
   "oracle_command": [
     "C:\\Program Files\\Pandoc\\pandoc.exe",
     "C:\\Users\\giaco\\AppData\\Local\\Temp\\sample.haddock",

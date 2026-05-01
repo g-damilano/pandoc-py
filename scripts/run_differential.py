@@ -230,9 +230,21 @@ def main(argv: list[str] | None = None) -> int:
             summary = 'Non-zero exit code.'
             comparison_level = 'execution'
     elif args.to_format == 'json':
-        comparison_level = 'structured_json'
-        status = 'pass' if json.loads(oracle.stdout) == json.loads(python.stdout) else 'fail'
-        summary = 'Structured JSON match.' if status == 'pass' else 'Structured JSON mismatch.'
+        # For native/json input we preserve exact JSON equality. For
+        # lightweight reader inputs (rst, org, mediawiki, etc.) we apply
+        # the same normalization the reparse-based comparators use, since
+        # those readers admit a constrained slice and are not expected to
+        # round-trip every pandoc attribute.
+        if args.from_format in {'native', 'json'}:
+            comparison_level = 'structured_json'
+            status = 'pass' if json.loads(oracle.stdout) == json.loads(python.stdout) else 'fail'
+            summary = 'Structured JSON match.' if status == 'pass' else 'Structured JSON mismatch.'
+        else:
+            comparison_level = f'structured_json_normalized_{args.from_format}'
+            o_obj = _strip_attr_ids(json.loads(oracle.stdout))
+            p_obj = _strip_attr_ids(json.loads(python.stdout))
+            status = 'pass' if o_obj == p_obj else 'fail'
+            summary = 'Structured JSON match (normalized).' if status == 'pass' else 'Structured JSON mismatch.'
     elif args.to_format == 'html':
         comparison_level = 'normalized_html'
         status = 'pass' if _normalized_html_repr(oracle.stdout) == _normalized_html_repr(python.stdout) else 'fail'

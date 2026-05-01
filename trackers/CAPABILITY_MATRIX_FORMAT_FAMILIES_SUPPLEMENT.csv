@@ -46,7 +46,7 @@ WR-MAN-001,Writer,src/Text/Pandoc/Writers/Man.hs,src/pandoc_py/formats/man.py,Ro
 RD-MDOC-001,Reader,src/Text/Pandoc/Readers/Mdoc.hs,src/pandoc_py/formats/mdoc.py,BSD mdoc reader on the constrained slice,High,implemented_unverified,none,Delegates to roff slice,Smoke verified.
 WR-MDOC-001,Writer,src/Text/Pandoc/Writers/Mdoc.hs,src/pandoc_py/formats/mdoc.py,BSD mdoc writer on the constrained slice,High,implemented_unverified,none,Delegates to roff slice,Smoke verified.
 RD-ROFF-001,Reader,src/Text/Pandoc/Readers/Roff.hs,src/pandoc_py/formats/man.py,Roff reader (alias of man),High,implemented_unverified,none,,Smoke verified via aliases.
-RD-CSV-001,Reader,src/Text/Pandoc/Readers/CSV.hs,src/pandoc_py/formats/csv_format.py,CSV reader producing a single Table block,High,implemented_unverified,none,,Smoke verified via test_csv_round_trip.
+RD-CSV-001,Reader,src/Text/Pandoc/Readers/CSV.hs,src/pandoc_py/formats/csv_format.py,CSV reader producing a single Table block,High,verified_smoke,smoke,,"Smoke verified via test_csv_round_trip. Oracle-backed reader via FAMILIES-RD-<FMT>-001 (format -> json structured comparison, normalized)."
 WR-CSV-001,Writer,src/Text/Pandoc/Writers/CSV.hs,src/pandoc_py/formats/csv_format.py,CSV writer flattening a Table block,High,implemented_unverified,none,,Smoke verified.
 RD-OPML-001,Reader,src/Text/Pandoc/Readers/OPML.hs,src/pandoc_py/formats/opml.py,OPML reader producing nested headings,High,implemented_unverified,none,,Smoke verified.
 WR-OPML-001,Writer,src/Text/Pandoc/Writers/OPML.hs,src/pandoc_py/formats/opml.py,OPML writer emitting nested outlines,High,verified_smoke,smoke,,"Smoke verified. Oracle-backed via FAMILIES-MD2<FMT>-001 / FAMILIES-RD-<FMT>-001 (markdown<->format reparse, structured JSON match with normalization)."
