@@ -45,6 +45,8 @@ def _read_fb2(source: str) -> Document:
 
 
 def _write_fb2(document: Document) -> str:
+    from pandoc_py.ast import BulletList, OrderedList, CodeBlock, ThematicBreak
+    from ._common import block_text_paragraphs
     parts = ['<?xml version="1.0" encoding="UTF-8"?>',
              '<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0">',
              '<body><section>']
@@ -53,6 +55,23 @@ def _write_fb2(document: Document) -> str:
             parts.append(f'<title><p>{escape(inlines_to_plain(block.inlines))}</p></title>')
         elif isinstance(block, Paragraph):
             parts.append(f'<p>{escape(inlines_to_plain(block.inlines))}</p>')
+        elif isinstance(block, BulletList):
+            for item in block.items:
+                for sub in block_text_paragraphs(item):
+                    parts.append(f'<p>• {escape(sub)}</p>')
+        elif isinstance(block, OrderedList):
+            n = block.start
+            for item in block.items:
+                for sub in block_text_paragraphs(item):
+                    parts.append(f'<p>{n}. {escape(sub)}</p>')
+                    n += 1
+        elif isinstance(block, CodeBlock):
+            parts.append('<empty-line/>')
+            for ln in block.text.split('\n'):
+                parts.append(f'<p><code>{escape(ln)}</code></p>')
+            parts.append('<empty-line/>')
+        elif isinstance(block, ThematicBreak):
+            parts.append('<empty-line/>')
     parts.append('</section></body></FictionBook>')
     return '\n'.join(parts) + '\n'
 

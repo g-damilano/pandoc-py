@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document>
+<Story Self="story1">
+<ParagraphStyleRange><CharacterStyleRange><Content>Heading</Content></CharacterStyleRange></ParagraphStyleRange>
+<ParagraphStyleRange><CharacterStyleRange><Content>A paragraph.</Content></CharacterStyleRange></ParagraphStyleRange>
+<ParagraphStyleRange><CharacterStyleRange><Content>A code block follows:</Content></CharacterStyleRange></ParagraphStyleRange>
+<ParagraphStyleRange AppliedParagraphStyle="Code"><CharacterStyleRange><Content>print(1)</Content></CharacterStyleRange></ParagraphStyleRange>
+</Story></Document>

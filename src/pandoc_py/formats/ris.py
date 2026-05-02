@@ -26,7 +26,12 @@ def _write_ris(document: Document) -> str:
     out: list[str] = []
     started = False
     for block in document.blocks:
-        text = inlines_to_plain(block.inlines).strip()
+        # Only blocks with `inlines` (Heading, Paragraph) carry text we can
+        # reflect into RIS tag/value pairs. Skip lists, code blocks, etc.
+        inlines = getattr(block, 'inlines', None)
+        if inlines is None:
+            continue
+        text = inlines_to_plain(inlines).strip()
         m = re.match(r'^([A-Z][A-Z0-9]):\s*(.*)$', text)
         if not m: continue
         tag, val = m.group(1), m.group(2)

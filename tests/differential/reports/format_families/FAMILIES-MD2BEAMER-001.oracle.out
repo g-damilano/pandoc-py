@@ -1,0 +1,18 @@
+\begin{frame}[fragile]{Heading}
+\protect\phantomsection\label{heading}
+A paragraph.
+
+\begin{itemize}
+\tightlist
+\item
+  one
+\item
+  two
+\end{itemize}
+
+A code block follows:
+
+\begin{verbatim}
+print(1)
+\end{verbatim}
+\end{frame}

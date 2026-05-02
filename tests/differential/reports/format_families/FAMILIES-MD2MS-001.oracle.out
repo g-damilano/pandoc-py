@@ -1,0 +1,16 @@
+.SH 1
+Heading
+.LP
+A paragraph.
+.IP \(bu 3
+one
+.IP \(bu 3
+two
+.LP
+A code block follows:
+.IP
+.nf
+\f[C]
+print(1)
+\f[]
+.fi

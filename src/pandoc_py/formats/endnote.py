@@ -34,7 +34,10 @@ def _write_endnote(document: Document) -> str:
     parts = ['<?xml version="1.0" encoding="UTF-8"?>', '<xml><records>']
     record_open = False
     for block in document.blocks:
-        text = inlines_to_plain(block.inlines).strip()
+        inlines = getattr(block, 'inlines', None)
+        if inlines is None:
+            continue
+        text = inlines_to_plain(inlines).strip()
         if isinstance(block, Heading) and text.startswith('ref-type:'):
             if record_open: parts.append('</record>')
             parts.append('<record>')

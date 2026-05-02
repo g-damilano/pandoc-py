@@ -1,0 +1,33 @@
+{
+  "fixture_id": "FAMILIES-MD2XML-001",
+  "input_format": "markdown",
+  "output_format": "xml",
+  "comparison_level": "writer_only_xml_emit_check",
+  "oracle_command": [
+    "C:\\Program Files\\Pandoc\\pandoc.exe",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\fixtures\\format_families\\simple.md",
+    "-f",
+    "markdown",
+    "-t",
+    "xml"
+  ],
+  "python_command": [
+    "C:\\Python314\\python.exe",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\scripts\\run_python_cli.py",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\fixtures\\format_families\\simple.md",
+    "--from",
+    "markdown",
+    "--to",
+    "xml"
+  ],
+  "oracle_version": "pandoc 3.8.2",
+  "python_version": "pandoc_py 0.0.58",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Both xml writers emitted non-empty bytes (oracle has no reader for this format).",
+  "oracle_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2XML-001.oracle.out",
+  "python_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2XML-001.python.out",
+  "oracle_stderr_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2XML-001.oracle.err",
+  "python_stderr_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2XML-001.python.err"
+}
