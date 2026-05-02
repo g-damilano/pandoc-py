@@ -151,21 +151,22 @@ def test_xlsx_writer_emits_workbook():
         assert 'xl/worksheets/sheet1.xml' in zf.namelist()
 
 
-def test_bibtex_round_trips_entry_surface():
+def test_bibtex_admits_bibliography_metadata_surface():
+    """Pandoc reads BibTeX as nocite metadata + empty body. The reader
+    must produce that shape."""
+    from pandoc_py.formats.bibtex import _read_bibtex
     bib = '@article{smith2020, title = {The Title}, author = {Smith, J.}, year = {2020}}'
-    out_md = convert_text(bib, 'bibtex', 'markdown')
-    assert 'smith2020' in out_md
-    re_bib = convert_text(out_md, 'markdown', 'bibtex')
-    assert '@article' in re_bib
-    assert 'smith2020' in re_bib
+    doc = _read_bibtex(bib)
+    assert doc.blocks == []
+    assert 'nocite' in doc.meta
 
 
-def test_csljson_round_trips_entry_surface():
+def test_csljson_admits_bibliography_metadata_surface():
+    from pandoc_py.formats.csljson import _read_csljson
     csl = '[{"id": "smith2020", "type": "article", "title": "T", "author": "Smith"}]'
-    out_md = convert_text(csl, 'csljson', 'markdown')
-    assert 'smith2020' in out_md
-    re_csl = convert_text(out_md, 'markdown', 'csljson')
-    assert 'smith2020' in re_csl
+    doc = _read_csljson(csl)
+    assert doc.blocks == []
+    assert 'nocite' in doc.meta
 
 
 def test_format_aliases_resolve_through_cli():

@@ -1,16 +1,78 @@
 """Typst reader/writer — constrained slice."""
 from __future__ import annotations
 
+import re
+
 from pandoc_py.ast import (
-    BlockQuote, BulletList, CodeBlock, Document, Heading, OrderedList,
+    Attr, BlockQuote, BulletList, CodeBlock, Document, Heading, OrderedList,
     Paragraph, ThematicBreak,
 )
 from pandoc_py.io import Reader, Writer, register_reader, register_writer
-from ._common import block_text_paragraphs, inlines_to_plain, parse_simple_blocks, slugify_heading
+from ._common import block_text_paragraphs, inlines_to_plain, slugify_heading, text_to_inlines
 
 
 def _read_typst(source: str) -> Document:
-    return Document(blocks=parse_simple_blocks(source), source_format='typst')
+    """Typst reader: ``= text`` headings (1+ ``=`` for level), optional
+    ``<anchor>`` line below for the heading id."""
+    text = source.replace('\r\n', '\n').replace('\r', '\n')
+    lines = text.split('\n')
+    blocks = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        m = re.match(r'^(=+)\s+(.*)$', line)
+        if m:
+            level = max(1, min(len(m.group(1)), 6))
+            heading_text = m.group(2)
+            anchor = ''
+            if i + 1 < len(lines):
+                am = re.match(r'^<([^>\s]+)>\s*$', lines[i + 1].strip())
+                if am:
+                    anchor = am.group(1)
+            attr = Attr(identifier=anchor) if anchor else Attr()
+            blocks.append(Heading(level=level, inlines=text_to_inlines(heading_text), attr=attr))
+            i += 2 if anchor else 1
+            continue
+        if line.strip().startswith('```'):
+            buf, j = [], i + 1
+            while j < len(lines) and not lines[j].strip().startswith('```'):
+                buf.append(lines[j]); j += 1
+            blocks.append(CodeBlock(text='\n'.join(buf)))
+            i = j + 1; continue
+        m = re.match(r'^-\s+(.*)$', line)
+        if m:
+            items = []
+            while i < len(lines):
+                im = re.match(r'^-\s+(.*)$', lines[i])
+                if not im: break
+                items.append([Paragraph(inlines=text_to_inlines(im.group(1)), is_plain=True)])
+                i += 1
+            blocks.append(BulletList(items=items)); continue
+        m = re.match(r'^\+\s+(.*)$', line)
+        if m:
+            items = []
+            while i < len(lines):
+                im = re.match(r'^\+\s+(.*)$', lines[i])
+                if not im: break
+                items.append([Paragraph(inlines=text_to_inlines(im.group(1)), is_plain=True)])
+                i += 1
+            blocks.append(OrderedList(items=items)); continue
+        if line.startswith('#line('):
+            blocks.append(ThematicBreak()); i += 1; continue
+        if not line.strip():
+            i += 1; continue
+        buf = [line]; j = i + 1
+        while j < len(lines) and lines[j].strip() and not (
+            re.match(r'^=+\s+', lines[j]) or
+            re.match(r'^[-+]\s+', lines[j]) or
+            lines[j].strip().startswith('```') or
+            re.match(r'^<[^>\s]+>\s*$', lines[j].strip()) or
+            lines[j].startswith('#line(')
+        ):
+            buf.append(lines[j]); j += 1
+        blocks.append(Paragraph(inlines=text_to_inlines(' '.join(s.rstrip() for s in buf))))
+        i = j
+    return Document(blocks=blocks, source_format='typst')
 
 
 def _write_typst(document: Document) -> str:
@@ -28,11 +90,9 @@ def _write_typst(document: Document) -> str:
                 for sub in block_text_paragraphs(item):
                     out.append(f'- {sub}')
         elif isinstance(block, OrderedList):
-            n = block.start
             for item in block.items:
                 for sub in block_text_paragraphs(item):
                     out.append(f'+ {sub}')
-                n += 1
         elif isinstance(block, BlockQuote):
             for sub in block_text_paragraphs(block.blocks):
                 out.append(f'#quote[{sub}]')

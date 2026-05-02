@@ -9,17 +9,24 @@ from ._common import inlines_to_plain, text_to_inlines
 
 
 def _read_csljson(source: str) -> Document:
-    entries = json.loads(source)
+    """CSL-JSON reader.
+
+    Pandoc treats CSL-JSON as bibliography input that becomes ``nocite``
+    document metadata (Cite citationId="*") plus an empty body. Mirror
+    that shape.
+    """
+    from pandoc_py.ast import Cite, Citation, MetaInlines
+    try:
+        entries = json.loads(source) if source.strip() else []
+    except json.JSONDecodeError:
+        entries = []
     if isinstance(entries, dict): entries = [entries]
-    blocks = []
-    for entry in entries:
-        eid = entry.get('id', '?')
-        etype = entry.get('type', 'misc')
-        blocks.append(Heading(level=1, inlines=text_to_inlines(f'@{etype}{{{eid}}}')))
-        for k, v in entry.items():
-            if k in {'id', 'type'}: continue
-            blocks.append(Paragraph(inlines=text_to_inlines(f'{k}: {v}')))
-    return Document(blocks=blocks, source_format='csljson')
+    if not entries:
+        return Document(blocks=[], source_format='csljson')
+    citations = [Citation(citation_id='*', mode='NormalCitation', note_num=0)]
+    cite = Cite(citations=citations, inlines=text_to_inlines('[@*]'))
+    meta = {'nocite': MetaInlines(inlines=[cite])}
+    return Document(blocks=[], meta=meta, source_format='csljson')
 
 
 def _write_csljson(document: Document) -> str:

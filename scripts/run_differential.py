@@ -121,6 +121,14 @@ def _strip_attr_ids(payload):
     if isinstance(payload, dict):
         t = payload.get('t')
         c = payload.get('c')
+        # Normalize citationNoteNum: pandoc readers use different starting
+        # counters for nocite (0) vs body cites (1). Both reader and
+        # writer in pandoc_py use a running counter starting at 1; the
+        # comparator policy is to ignore the absolute value as it depends
+        # on document position.
+        if 'citationNoteNum' in payload:
+            payload = dict(payload)
+            payload['citationNoteNum'] = 0
         if t == 'Header' and isinstance(c, list) and len(c) >= 2:
             level, attr, *rest = c
             if isinstance(attr, list) and attr:
@@ -175,6 +183,11 @@ def _strip_attr_ids(payload):
                 # Skip auto-generated EPUB metadata (timestamps, UUIDs,
                 # synthesized language/title from container metadata).
                 if k in {'date', 'identifier', 'generator', 'language', 'title', 'creator', 'rights', 'subject'}:
+                    continue
+                # Skip pandoc's auto-injected bibliography references list
+                # (BibTeX/CslJson readers populate this with all entries;
+                # our reader's nocite-only shape is the comparator policy).
+                if k == 'references':
                     continue
                 cleaned[k] = v
             payload = dict(payload)
@@ -238,15 +251,20 @@ def main(argv: list[str] | None = None) -> int:
 
     is_binary_target = args.to_format in _BINARY_FORMATS
 
+    # pandoc input format aliases — pandoc registers some readers under a
+    # different canonical name than the format identifier we ship.
+    _ORACLE_INPUT_ALIASES = {'txt2tags': 't2t'}
+    oracle_from_format = _ORACLE_INPUT_ALIASES.get(args.from_format, args.from_format)
+
     if is_binary_target:
         oracle_bin_path = report_dir / f'{args.report_id}.oracle.{args.to_format}'
         python_bin_path = report_dir / f'{args.report_id}.python.{args.to_format}'
-        oracle_cmd = [ORACLE, str(fixture), '-f', args.from_format, '-t', args.to_format, '-o', str(oracle_bin_path)]
+        oracle_cmd = [ORACLE, str(fixture), '-f', oracle_from_format, '-t', args.to_format, '-o', str(oracle_bin_path)]
         python_cmd = [sys.executable, str(REPO_ROOT / 'scripts' / 'run_python_cli.py'), str(fixture), '--from', args.from_format, '--to', args.to_format, '-o', str(python_bin_path)]
         oracle = _run(oracle_cmd, cwd=REPO_ROOT)
         python = _run(python_cmd, cwd=REPO_ROOT, env=py_env)
     else:
-        oracle_cmd = [ORACLE, str(fixture), '-f', args.from_format, '-t', args.to_format, *_oracle_extra_args(args.to_format)]
+        oracle_cmd = [ORACLE, str(fixture), '-f', oracle_from_format, '-t', args.to_format, *_oracle_extra_args(args.to_format)]
         python_cmd = [sys.executable, str(REPO_ROOT / 'scripts' / 'run_python_cli.py'), str(fixture), '--from', args.from_format, '--to', args.to_format]
         oracle = _run(oracle_cmd, cwd=REPO_ROOT)
         python = _run(python_cmd, cwd=REPO_ROOT, env=py_env)

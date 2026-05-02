@@ -10,16 +10,37 @@ from ._common import inlines_to_plain, text_to_inlines
 
 
 def _read_fb2(source: str) -> Document:
+    """FB2 reader: walk body/section/title/p preserving section depth.
+
+    pandoc emits each section's title at level=section-depth+1; e.g. a
+    title in a top-level section becomes H2 (because the body itself
+    counts as the implicit H1 root).
+    """
     root = ET.fromstring(source)
-    blocks = []
-    for el in root.iter():
+    blocks: list = []
+
+    def walk(el, depth):
         tag = el.tag.split('}')[-1]
-        if tag == 'title':
-            for p in el.iter():
-                if p.tag.split('}')[-1] == 'p' and p.text:
-                    blocks.append(Heading(level=1, inlines=text_to_inlines(p.text)))
-        elif tag == 'p' and el.text:
+        if tag == 'section':
+            new_depth = depth + 1
+            for child in el:
+                ctag = child.tag.split('}')[-1]
+                if ctag == 'title':
+                    for p in child:
+                        if p.tag.split('}')[-1] == 'p' and p.text:
+                            blocks.append(Heading(level=min(new_depth, 6), inlines=text_to_inlines(p.text)))
+                else:
+                    walk(child, new_depth)
+            return
+        if tag == 'p' and el.text:
             blocks.append(Paragraph(inlines=text_to_inlines(el.text)))
+            return
+        for child in el:
+            walk(child, depth)
+
+    # Start at depth=1 because <body> itself counts as the document root,
+    # so the first <section>/title inside body becomes H2.
+    walk(root, 1)
     return Document(blocks=blocks, source_format='fb2')
 
 

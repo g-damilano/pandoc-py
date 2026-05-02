@@ -21,15 +21,36 @@ def _strip_rtf(s: str) -> str:
 
 
 def _read_rtf(source: str) -> Document:
+    """RTF reader.
+
+    Each ``{\\pard ... \\par}`` group is one block. The presence of an
+    ``\\outlinelevelN`` control word inside the group makes it a heading
+    of level N+1 (pandoc convention); ``\\bullet`` makes it a bullet
+    list item; otherwise it's a paragraph.
+    """
     blocks: list = []
-    body = source
-    if r'\par' in body:
-        for chunk in body.split(r'\par'):
+    # Find each {\pard ... \par} group (allowing \par inside).
+    groups = re.findall(r'\{\\pard[^{}]*?\\par\}', source)
+    if not groups:
+        # Fallback: split on \par.
+        for chunk in source.split(r'\par'):
             text = _strip_rtf(chunk)
             if text:
                 blocks.append(Paragraph(inlines=text_to_inlines(text)))
-    else:
-        text = _strip_rtf(body)
+        return Document(blocks=blocks, source_format='rtf')
+
+    for group in groups:
+        m = re.search(r'\\outlinelevel(\d+)', group)
+        if m:
+            text = _strip_rtf(group)
+            blocks.append(Heading(level=int(m.group(1)) + 1, inlines=text_to_inlines(text)))
+            continue
+        # \bullet groups become plain paragraphs prefixed with "• " — this
+        # mirrors pandoc's lossy RTF reader, which does not reconstruct
+        # BulletList from \bullet lines.
+        text = _strip_rtf(group)
+        if r'\bullet' in group:
+            text = '• ' + re.sub(r'^bullet\s*', '', text)
         if text:
             blocks.append(Paragraph(inlines=text_to_inlines(text)))
     return Document(blocks=blocks, source_format='rtf')

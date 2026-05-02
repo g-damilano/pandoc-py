@@ -23,10 +23,26 @@ def _read_pod(source: str) -> Document:
         if line.startswith('=over'):
             items, j = [], i + 1
             while j < len(lines) and not lines[j].startswith('=back'):
-                im = re.match(r'^=item\s+\*?\s*(.*)$', lines[j])
+                im = re.match(r'^=item\s+(\*\s*)?(.*)$', lines[j])
                 if im:
-                    items.append([Paragraph(inlines=text_to_inlines(im.group(1)), is_plain=True)])
-                j += 1
+                    inline_content = im.group(2).strip()
+                    j += 1
+                    # If the item header has no inline content, the item's
+                    # body is the next non-blank, non-=item line(s).
+                    if not inline_content:
+                        # Skip leading blank lines.
+                        while j < len(lines) and not lines[j].strip():
+                            j += 1
+                        body_lines = []
+                        while j < len(lines) and lines[j].strip() and not (
+                            lines[j].startswith('=item') or lines[j].startswith('=back')
+                        ):
+                            body_lines.append(lines[j].strip())
+                            j += 1
+                        inline_content = ' '.join(body_lines)
+                    items.append([Paragraph(inlines=text_to_inlines(inline_content), is_plain=True)])
+                else:
+                    j += 1
             blocks.append(BulletList(items=items))
             i = j + 1; continue
         if line.startswith('=cut') or line.startswith('=pod'):

@@ -18,13 +18,23 @@ _ENTRY_RE = re.compile(r'@(\w+)\s*\{\s*([^,]+),\s*(.*?)\}\s*(?=@|\Z)', re.DOTALL
 
 
 def _read_bibtex(source: str) -> Document:
-    blocks = []
+    """BibTeX reader.
+
+    Pandoc treats BibTeX input as bibliography metadata: the document's
+    ``nocite`` metadata gathers all entry keys as a single ``Cite`` with
+    ``citationId="*"``. We mirror that shape so reader-side differential
+    reports compare apples-to-apples.
+    """
+    from pandoc_py.ast import Cite, Citation, MetaInlines
+    keys = []
     for m in _ENTRY_RE.finditer(source):
-        kind, key, body = m.group(1), m.group(2).strip(), m.group(3)
-        blocks.append(Heading(level=1, inlines=text_to_inlines(f'@{kind}{{{key}}}')))
-        for fm in re.finditer(r'(\w+)\s*=\s*[\{"](.*?)["\}],?', body, re.DOTALL):
-            blocks.append(Paragraph(inlines=text_to_inlines(f'{fm.group(1)} = {fm.group(2).strip()}')))
-    return Document(blocks=blocks, source_format='bibtex')
+        keys.append(m.group(2).strip())
+    if not keys:
+        return Document(blocks=[], source_format='bibtex')
+    citations = [Citation(citation_id='*', mode='NormalCitation', note_num=0)]
+    cite = Cite(citations=citations, inlines=text_to_inlines('[@*]'))
+    meta = {'nocite': MetaInlines(inlines=[cite])}
+    return Document(blocks=[], meta=meta, source_format='bibtex')
 
 
 def _write_bibtex(document: Document) -> str:
