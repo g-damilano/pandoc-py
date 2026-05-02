@@ -1,0 +1,4 @@
+Error at "C:\Users\giaco\Documents\GitHub\pandoc-py\.claude\worktrees\modest-blackburn-a0ec49\tests\fixtures\format_families\generated\sample.mdoc" (line 6, column 5):
+unexpected Lit "one" "C:\Users\giaco\Documents\GitHub\pandoc-py\.claude\worktrees\modest-blackburn-a0ec49\tests\fixtures\format_families\generated\sample.mdoc" (line 6, column 5)
+.It one
+    ^

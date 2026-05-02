@@ -57,24 +57,100 @@ _DOCX_W = '{' + _DOCX_NS + '}'
 
 
 def _read_docx(source) -> Document:
+    """DOCX reader admitting Heading, Paragraph, BulletList, OrderedList,
+    and CodeBlock from the basic OOXML surface.
+
+    A paragraph with `w:numPr/w:numId` becomes a list item (collapsed
+    into BulletList or OrderedList based on the `w:abstractNum`'s
+    numFmt). Paragraphs styled `Heading{N}` become Heading nodes.
+    Paragraphs styled `SourceCode` are joined into a single CodeBlock.
+    """
     data = _coerce_bytes(source)
     xml = _zip_load_text(data, 'word/document.xml')
     root = ET.fromstring(xml)
-    blocks = []
+    # Resolve numId → numFmt via numbering.xml when available.
+    num_kind: dict[str, str] = {}
+    try:
+        num_xml = _zip_load_text(data, 'word/numbering.xml')
+        num_root = ET.fromstring(num_xml)
+        abstract_kind: dict[str, str] = {}
+        for an in num_root.iter(_DOCX_W + 'abstractNum'):
+            an_id = an.attrib.get(_DOCX_W + 'abstractNumId', '')
+            for fmt_el in an.iter(_DOCX_W + 'numFmt'):
+                abstract_kind[an_id] = fmt_el.attrib.get(_DOCX_W + 'val', 'bullet')
+                break
+        for n in num_root.iter(_DOCX_W + 'num'):
+            n_id = n.attrib.get(_DOCX_W + 'numId', '')
+            for ref in n.iter(_DOCX_W + 'abstractNumId'):
+                num_kind[n_id] = abstract_kind.get(ref.attrib.get(_DOCX_W + 'val', ''), 'bullet')
+                break
+    except KeyError:
+        pass
+
+    blocks: list = []
+    pending_bullet: list[str] | None = None
+    pending_ordered: list[str] | None = None
+    pending_code: list[str] | None = None
+
+    def flush_pending():
+        nonlocal pending_bullet, pending_ordered, pending_code
+        if pending_bullet is not None:
+            blocks.append(BulletList(items=[
+                [Paragraph(inlines=text_to_inlines(t), is_plain=True)] for t in pending_bullet
+            ]))
+            pending_bullet = None
+        if pending_ordered is not None:
+            blocks.append(OrderedList(items=[
+                [Paragraph(inlines=text_to_inlines(t), is_plain=True)] for t in pending_ordered
+            ]))
+            pending_ordered = None
+        if pending_code is not None:
+            blocks.append(CodeBlock(text='\n'.join(pending_code)))
+            pending_code = None
+
     for p in root.iter(_DOCX_W + 'p'):
         text_parts = [t.text or '' for t in p.iter(_DOCX_W + 't')]
         text = ''.join(text_parts).strip()
-        if not text:
+        # numPr → list item
+        num_id = ''
+        for ni in p.iter(_DOCX_W + 'numId'):
+            num_id = ni.attrib.get(_DOCX_W + 'val', '')
+            break
+        if num_id:
+            kind = num_kind.get(num_id, 'bullet')
+            if kind == 'bullet':
+                if pending_ordered is not None or pending_code is not None:
+                    flush_pending()
+                if pending_bullet is None:
+                    pending_bullet = []
+                pending_bullet.append(text)
+            else:
+                if pending_bullet is not None or pending_code is not None:
+                    flush_pending()
+                if pending_ordered is None:
+                    pending_ordered = []
+                pending_ordered.append(text)
             continue
         style = ''
         for ps in p.iter(_DOCX_W + 'pStyle'):
             style = ps.attrib.get(_DOCX_W + 'val', '')
             break
+        if style == 'SourceCode':
+            if pending_bullet is not None or pending_ordered is not None:
+                flush_pending()
+            if pending_code is None:
+                pending_code = []
+            pending_code.append(text)
+            continue
+        flush_pending()
+        if not text:
+            continue
         m = re.match(r'^Heading(\d)$', style or '')
         if m:
             blocks.append(Heading(level=int(m.group(1)), inlines=text_to_inlines(text)))
         else:
             blocks.append(Paragraph(inlines=text_to_inlines(text)))
+    flush_pending()
     return Document(blocks=blocks, source_format='docx')
 
 
@@ -218,20 +294,71 @@ register_writer(DocxWriter())
 # ----- ODT -----------------------------------------------------------------
 
 def _read_odt(source) -> Document:
+    """ODT reader admitting Heading, Paragraph, BulletList, OrderedList.
+
+    A ``text:list`` element becomes BulletList (default) or OrderedList
+    (if its style declares a list-level-style-number); each immediate
+    ``text:list-item`` contributes one item.
+    """
+    _ODT_TEXT = 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'
+    _ODT_T = '{' + _ODT_TEXT + '}'
     data = _coerce_bytes(source)
     xml = _zip_load_text(data, 'content.xml')
     root = ET.fromstring(xml)
-    blocks = []
-    for el in root.iter():
-        tag = el.tag.split('}')[-1]
-        text = ''.join(el.itertext()).strip()
-        if not text:
-            continue
-        if tag == 'h':
-            level = int(el.attrib.get('{urn:oasis:names:tc:opendocument:xmlns:text:1.0}outline-level', '1'))
-            blocks.append(Heading(level=level, inlines=text_to_inlines(text)))
-        elif tag == 'p':
-            blocks.append(Paragraph(inlines=text_to_inlines(text)))
+    # Resolve list-style names to bullet/ordered.
+    list_kind: dict[str, str] = {}
+    try:
+        styles_xml = _zip_load_text(data, 'styles.xml')
+        for ls in ET.fromstring(styles_xml).iter():
+            if ls.tag.split('}')[-1] == 'list-style':
+                name = ls.attrib.get('{urn:oasis:names:tc:opendocument:xmlns:style:1.0}name')
+                if not name: continue
+                kind = 'bullet'
+                for child in ls:
+                    if child.tag.split('}')[-1] == 'list-level-style-number':
+                        kind = 'ordered'; break
+                list_kind[name] = kind
+    except KeyError:
+        pass
+    # Also check content.xml automatic-styles for inline list styles.
+    for ls in root.iter():
+        if ls.tag.split('}')[-1] == 'list-style':
+            name = ls.attrib.get('{urn:oasis:names:tc:opendocument:xmlns:style:1.0}name')
+            if not name: continue
+            kind = 'bullet'
+            for child in ls:
+                if child.tag.split('}')[-1] == 'list-level-style-number':
+                    kind = 'ordered'; break
+            list_kind[name] = kind
+
+    blocks: list = []
+
+    def walk(el, depth):
+        for child in el:
+            tag = child.tag.split('}')[-1]
+            if tag == 'h':
+                level = int(child.attrib.get(_ODT_T + 'outline-level', '1'))
+                text = ''.join(child.itertext()).strip()
+                if text:
+                    blocks.append(Heading(level=level, inlines=text_to_inlines(text)))
+            elif tag == 'p':
+                text = ''.join(child.itertext()).strip()
+                if text:
+                    blocks.append(Paragraph(inlines=text_to_inlines(text)))
+            elif tag == 'list':
+                style_name = child.attrib.get(_ODT_T + 'style-name', '')
+                kind = list_kind.get(style_name, 'bullet')
+                items = []
+                for li in child:
+                    if li.tag.split('}')[-1] == 'list-item':
+                        item_text = ''.join(li.itertext()).strip()
+                        items.append([Paragraph(inlines=text_to_inlines(item_text), is_plain=True)])
+                if items:
+                    blocks.append(OrderedList(items=items) if kind == 'ordered' else BulletList(items=items))
+            else:
+                walk(child, depth + 1)
+
+    walk(root, 0)
     return Document(blocks=blocks, source_format='odt')
 
 
@@ -504,21 +631,59 @@ register_writer(XlsxWriter())
 # ----- EPUB ---------------------------------------------------------------
 
 def _read_epub(source) -> Document:
+    """EPUB reader admitting Heading, Paragraph, BulletList, OrderedList,
+    and CodeBlock from the chapter XHTML payload(s)."""
     data = _coerce_bytes(source)
     blocks = []
+    nav_files = {'nav.xhtml', 'OEBPS/nav.xhtml', 'EPUB/nav.xhtml'}
     with zipfile.ZipFile(io.BytesIO(data)) as zf:
         for name in sorted(zf.namelist()):
-            if name.endswith('.xhtml') or name.endswith('.html'):
-                xml = zf.read(name).decode('utf-8', errors='replace')
-                # crude tag stripping
-                m = re.findall(r'<(h[1-6])[^>]*>(.*?)</\1>', xml, re.DOTALL | re.IGNORECASE)
-                for tag, text in m:
-                    blocks.append(Heading(level=int(tag[1]), inlines=text_to_inlines(re.sub(r'<[^>]+>', '', text).strip())))
-                m = re.findall(r'<p[^>]*>(.*?)</p>', xml, re.DOTALL | re.IGNORECASE)
-                for text in m:
-                    plain = re.sub(r'<[^>]+>', '', text).strip()
-                    if plain:
-                        blocks.append(Paragraph(inlines=text_to_inlines(plain)))
+            if not (name.endswith('.xhtml') or name.endswith('.html')):
+                continue
+            # Skip nav documents — they hold the TOC, not the body content.
+            base = name.rsplit('/', 1)[-1]
+            if base in {'nav.xhtml', 'toc.xhtml'} or name in nav_files:
+                continue
+            xml = zf.read(name).decode('utf-8', errors='replace')
+            # Strip the namespace and remaining xml declaration so a
+            # plain ElementTree.fromstring can parse the body.
+            cleaned = re.sub(r'<\?xml[^?]*\?>', '', xml)
+            cleaned = re.sub(r'<!DOCTYPE[^>]+>', '', cleaned, flags=re.IGNORECASE)
+            cleaned = re.sub(r'\bxmlns(:[a-z]+)?="[^"]*"', '', cleaned)
+            # Strip any remaining prefixed attributes (epub:type, xml:lang).
+            cleaned = re.sub(r'\b[a-zA-Z][a-zA-Z0-9]*:[a-zA-Z][a-zA-Z0-9]*="[^"]*"', '', cleaned)
+            try:
+                root = ET.fromstring(cleaned if '<html' in cleaned else f'<html>{cleaned}</html>')
+            except ET.ParseError:
+                continue
+            for el in root.iter():
+                tag = el.tag.lower()
+                if re.match(r'^h[1-6]$', tag):
+                    text = ''.join(el.itertext()).strip()
+                    if text:
+                        blocks.append(Heading(level=int(tag[1]), inlines=text_to_inlines(text)))
+                elif tag == 'p':
+                    text = ''.join(el.itertext()).strip()
+                    if text:
+                        blocks.append(Paragraph(inlines=text_to_inlines(text)))
+                elif tag == 'ul':
+                    items = []
+                    for li in el:
+                        if li.tag.lower() == 'li':
+                            items.append([Paragraph(inlines=text_to_inlines(''.join(li.itertext()).strip()), is_plain=True)])
+                    if items:
+                        blocks.append(BulletList(items=items))
+                elif tag == 'ol':
+                    items = []
+                    for li in el:
+                        if li.tag.lower() == 'li':
+                            items.append([Paragraph(inlines=text_to_inlines(''.join(li.itertext()).strip()), is_plain=True)])
+                    if items:
+                        blocks.append(OrderedList(items=items))
+                elif tag == 'pre':
+                    text = ''.join(el.itertext())
+                    if text:
+                        blocks.append(CodeBlock(text=text.rstrip('\n')))
     return Document(blocks=blocks, source_format='epub')
 
 

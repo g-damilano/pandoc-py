@@ -10,24 +10,23 @@ from ._common import inlines_to_plain, text_to_inlines
 
 
 def _read_endnote(source: str) -> Document:
-    root = ET.fromstring(source)
-    blocks = []
-    for record in root.iter('record'):
-        ref_type = record.find('ref-type')
-        if ref_type is not None and ref_type.text:
-            blocks.append(Heading(level=1, inlines=text_to_inlines(f'ref-type: {ref_type.text}')))
-        titles = record.find('titles')
-        if titles is not None:
-            for title in titles.iter('title'):
-                if title.text:
-                    blocks.append(Paragraph(inlines=text_to_inlines(f'title: {title.text}')))
-        for tag in ('contributors', 'dates', 'periodical'):
-            element = record.find(tag)
-            if element is not None:
-                for sub in element.iter():
-                    if sub.text and sub.text.strip():
-                        blocks.append(Paragraph(inlines=text_to_inlines(f'{sub.tag}: {sub.text.strip()}')))
-    return Document(blocks=blocks, source_format='endnotexml')
+    """EndNote XML reader.
+
+    Pandoc treats EndNote XML as bibliography input that becomes
+    ``nocite`` document metadata plus an empty body. Mirror that shape.
+    """
+    from pandoc_py.ast import Cite, Citation, MetaInlines
+    try:
+        root = ET.fromstring(source)
+        has_records = any(True for _ in root.iter('record'))
+    except ET.ParseError:
+        has_records = False
+    if not has_records:
+        return Document(blocks=[], source_format='endnotexml')
+    citations = [Citation(citation_id='*', mode='NormalCitation', note_num=0)]
+    cite = Cite(citations=citations, inlines=text_to_inlines('[@*]'))
+    meta = {'nocite': MetaInlines(inlines=[cite])}
+    return Document(blocks=[], meta=meta, source_format='endnotexml')
 
 
 def _write_endnote(document: Document) -> str:

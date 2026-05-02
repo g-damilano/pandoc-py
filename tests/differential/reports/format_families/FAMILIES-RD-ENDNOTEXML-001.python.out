@@ -1,0 +1,1 @@
+{"pandoc-api-version": [1, 23, 1], "meta": {}, "blocks": [{"t": "Header", "c": [1, ["ref-type-journal-article", [], []], [{"t": "Str", "c": "ref-type:"}, {"t": "Space"}, {"t": "Str", "c": "Journal"}, {"t": "Space"}, {"t": "Str", "c": "Article"}]]}, {"t": "Para", "c": [{"t": "Str", "c": "title:"}, {"t": "Space"}, {"t": "Str", "c": "T"}]}]}

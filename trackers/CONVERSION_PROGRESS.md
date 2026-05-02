@@ -8,5 +8,5 @@ It is therefore a more honest measure of how much of the admitted Pandoc surface
 - Active governed rows: **711**
 - Fine-grained capability rows: **608**
 - Coarse inventory rows: **103**
-- Implemented-or-better rows: **709/711** (**99.7%**)
-- Smoke-verified-or-better rows: **683/711** (**96.1%**)
+- Implemented-or-better rows: **711/711** (**100.0%**)
+- Smoke-verified-or-better rows: **711/711** (**100.0%**)

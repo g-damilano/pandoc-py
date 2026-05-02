@@ -1,0 +1,14 @@
+<sec id="heading">
+  <title>Heading</title>
+  <p>A paragraph.</p>
+  <list list-type="bullet">
+    <list-item>
+      <p>one</p>
+    </list-item>
+    <list-item>
+      <p>two</p>
+    </list-item>
+  </list>
+  <p>A code block follows:</p>
+  <preformat>print(1)</preformat>
+</sec>

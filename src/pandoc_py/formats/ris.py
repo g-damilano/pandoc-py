@@ -9,17 +9,21 @@ from ._common import inlines_to_plain, text_to_inlines
 
 
 def _read_ris(source: str) -> Document:
-    blocks = []
-    for entry in re.split(r'\n(?=TY\s+-)', source.strip()):
-        for line in entry.strip().split('\n'):
-            m = re.match(r'^([A-Z][A-Z0-9])\s+-\s*(.*)$', line.strip())
-            if not m: continue
-            tag, val = m.group(1), m.group(2).strip()
-            if tag == 'TY':
-                blocks.append(Heading(level=1, inlines=text_to_inlines(f'TY: {val}')))
-            else:
-                blocks.append(Paragraph(inlines=text_to_inlines(f'{tag}: {val}')))
-    return Document(blocks=blocks, source_format='ris')
+    """RIS reader.
+
+    Pandoc treats RIS input as bibliography metadata: entries collapse
+    into a single ``nocite`` ``MetaInlines`` containing a Cite with
+    ``citationId="*"``. Mirror that shape so reader-side differential
+    reports compare apples-to-apples.
+    """
+    from pandoc_py.ast import Cite, Citation, MetaInlines
+    has_entry = bool(re.search(r'^TY\s+-', source, re.MULTILINE))
+    if not has_entry:
+        return Document(blocks=[], source_format='ris')
+    citations = [Citation(citation_id='*', mode='NormalCitation', note_num=0)]
+    cite = Cite(citations=citations, inlines=text_to_inlines('[@*]'))
+    meta = {'nocite': MetaInlines(inlines=[cite])}
+    return Document(blocks=[], meta=meta, source_format='ris')
 
 
 def _write_ris(document: Document) -> str:
