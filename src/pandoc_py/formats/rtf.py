@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 
 from pandoc_py.ast import (
-    BulletList, Document, Heading, OrderedList, Paragraph,
+    BulletList, CodeBlock, Document, Heading, OrderedList, Paragraph,
 )
 from pandoc_py.io import Reader, Writer, register_reader, register_writer
 from ._common import block_text_paragraphs, inlines_to_plain, text_to_inlines
@@ -40,16 +40,38 @@ def _rtf_escape(text: str) -> str:
 
 
 def _write_rtf(document: Document) -> str:
+    """Pandoc-aligned RTF surface.
+
+    Each block is wrapped in ``{\\pard ... \\par}`` with the same control
+    words pandoc emits, so pandoc's RTF reader recognises the structure
+    rather than treating boldface as Strong inside Para.
+    """
     out = [r'{\rtf1\ansi\deff0']
     for block in document.blocks:
         if isinstance(block, Heading):
-            out.append(r'\b ' + _rtf_escape(inlines_to_plain(block.inlines)) + r'\b0\par')
+            level = max(1, min(block.level, 6)) - 1
+            text = _rtf_escape(inlines_to_plain(block.inlines))
+            out.append(r'{\pard \ql \f0 \sa180 \li0 \fi0 '
+                       f'\\outlinelevel{level} \\b \\fs36 {text}\\par}}')
         elif isinstance(block, Paragraph):
-            out.append(_rtf_escape(inlines_to_plain(block.inlines)) + r'\par')
-        elif isinstance(block, (BulletList, OrderedList)):
+            text = _rtf_escape(inlines_to_plain(block.inlines))
+            out.append(r'{\pard \ql \f0 \sa180 \li0 \fi0 ' + text + r'\par}')
+        elif isinstance(block, BulletList):
             for item in block.items:
                 for sub in block_text_paragraphs(item):
-                    out.append(r'\bullet ' + _rtf_escape(sub) + r'\par')
+                    out.append(r'{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab '
+                               + _rtf_escape(sub) + r'\par}')
+        elif isinstance(block, OrderedList):
+            n = block.start
+            for item in block.items:
+                for sub in block_text_paragraphs(item):
+                    out.append(r'{\pard \ql \f0 \sa0 \li360 \fi-360 '
+                               + str(n) + r'.\tx360\tab '
+                               + _rtf_escape(sub) + r'\par}')
+                    n += 1
+        elif isinstance(block, CodeBlock):
+            for ln in block.text.split('\n'):
+                out.append(r'{\pard \ql \f0 \sa0 \f1 ' + _rtf_escape(ln) + r'\par}')
     out.append('}')
     return '\n'.join(out) + '\n'
 

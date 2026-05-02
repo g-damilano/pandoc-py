@@ -85,6 +85,22 @@ def _docx_paragraph(text: str, style: str | None = None) -> str:
     return f'<w:p>{s}<w:r><w:t xml:space="preserve">{escape(text)}</w:t></w:r></w:p>'
 
 
+def _docx_list_paragraph(text: str, *, ordered: bool) -> str:
+    num_id = '2' if ordered else '1'
+    return (
+        '<w:p>'
+        '<w:pPr>'
+        f'<w:pStyle w:val="ListParagraph"/>'
+        '<w:numPr>'
+        '<w:ilvl w:val="0"/>'
+        f'<w:numId w:val="{num_id}"/>'
+        '</w:numPr>'
+        '</w:pPr>'
+        f'<w:r><w:t xml:space="preserve">{escape(text)}</w:t></w:r>'
+        '</w:p>'
+    )
+
+
 def _write_docx(document: Document) -> bytes:
     body_parts: list[str] = []
     for block in document.blocks:
@@ -92,13 +108,17 @@ def _write_docx(document: Document) -> bytes:
             body_parts.append(_docx_paragraph(inlines_to_plain(block.inlines), f'Heading{max(1, min(block.level, 6))}'))
         elif isinstance(block, Paragraph):
             body_parts.append(_docx_paragraph(inlines_to_plain(block.inlines)))
-        elif isinstance(block, (BulletList, OrderedList)):
+        elif isinstance(block, BulletList):
             for item in block.items:
                 for sub in block_text_paragraphs(item):
-                    body_parts.append(_docx_paragraph(('• ' if isinstance(block, BulletList) else '1. ') + sub, 'ListParagraph'))
+                    body_parts.append(_docx_list_paragraph(sub, ordered=False))
+        elif isinstance(block, OrderedList):
+            for item in block.items:
+                for sub in block_text_paragraphs(item):
+                    body_parts.append(_docx_list_paragraph(sub, ordered=True))
         elif isinstance(block, CodeBlock):
             for ln in block.text.split('\n'):
-                body_parts.append(_docx_paragraph(ln, 'Code'))
+                body_parts.append(_docx_paragraph(ln, 'SourceCode'))
 
     document_xml = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
@@ -112,6 +132,10 @@ def _write_docx(document: Document) -> bytes:
         '<Default Extension="xml" ContentType="application/xml"/>'
         '<Override PartName="/word/document.xml" '
         'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+        '<Override PartName="/word/styles.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'
+        '<Override PartName="/word/numbering.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>'
         '</Types>'
     )
     rels = (
@@ -121,10 +145,57 @@ def _write_docx(document: Document) -> bytes:
         'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
         'Target="word/document.xml"/></Relationships>'
     )
+    document_rels = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId10" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" '
+        'Target="styles.xml"/>'
+        '<Relationship Id="rId11" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" '
+        'Target="numbering.xml"/>'
+        '</Relationships>'
+    )
+    style_entries = []
+    for level in range(1, 7):
+        style_entries.append(
+            f'<w:style w:type="paragraph" w:styleId="Heading{level}">'
+            f'<w:name w:val="heading {level}"/>'
+            f'<w:pPr><w:outlineLvl w:val="{level - 1}"/></w:pPr>'
+            '</w:style>'
+        )
+    style_entries.append(
+        '<w:style w:type="paragraph" w:styleId="ListParagraph">'
+        '<w:name w:val="List Paragraph"/></w:style>'
+    )
+    style_entries.append(
+        '<w:style w:type="paragraph" w:styleId="SourceCode">'
+        '<w:name w:val="Source Code"/></w:style>'
+    )
+    styles_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        f'<w:styles xmlns:w="{_DOCX_NS}">' + ''.join(style_entries) + '</w:styles>'
+    )
+    numbering_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        f'<w:numbering xmlns:w="{_DOCX_NS}">'
+        '<w:abstractNum w:abstractNumId="0">'
+        '<w:lvl w:ilvl="0"><w:numFmt w:val="bullet"/><w:lvlText w:val="•"/></w:lvl>'
+        '</w:abstractNum>'
+        '<w:abstractNum w:abstractNumId="1">'
+        '<w:lvl w:ilvl="0"><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/></w:lvl>'
+        '</w:abstractNum>'
+        '<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num>'
+        '<w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num>'
+        '</w:numbering>'
+    )
     return _zip_save({
         '[Content_Types].xml': content_types.encode('utf-8'),
         '_rels/.rels': rels.encode('utf-8'),
+        'word/_rels/document.xml.rels': document_rels.encode('utf-8'),
         'word/document.xml': document_xml.encode('utf-8'),
+        'word/styles.xml': styles_xml.encode('utf-8'),
+        'word/numbering.xml': numbering_xml.encode('utf-8'),
     })
 
 
@@ -172,15 +243,56 @@ def _write_odt(document: Document) -> bytes:
                         f'{escape(inlines_to_plain(block.inlines))}</text:h>')
         elif isinstance(block, Paragraph):
             body.append(f'<text:p>{escape(inlines_to_plain(block.inlines))}</text:p>')
+        elif isinstance(block, BulletList):
+            body.append('<text:list text:style-name="ListBullet">')
+            for item in block.items:
+                for sub in block_text_paragraphs(item):
+                    body.append(f'<text:list-item><text:p>{escape(sub)}</text:p></text:list-item>')
+            body.append('</text:list>')
+        elif isinstance(block, OrderedList):
+            body.append('<text:list text:style-name="ListNumber">')
+            for item in block.items:
+                for sub in block_text_paragraphs(item):
+                    body.append(f'<text:list-item><text:p>{escape(sub)}</text:p></text:list-item>')
+            body.append('</text:list>')
+        elif isinstance(block, CodeBlock):
+            for ln in block.text.split('\n'):
+                body.append(f'<text:p>{escape(ln)}</text:p>')
     content_xml = (
         '<?xml version="1.0" encoding="UTF-8"?>'
         '<office:document-content '
         'xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" '
-        'xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">'
+        'xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" '
+        'xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0">'
+        '<office:automatic-styles>'
+        '<text:list-style style:name="ListBullet">'
+        '<text:list-level-style-bullet text:level="1" text:bullet-char="•"/>'
+        '</text:list-style>'
+        '<text:list-style style:name="ListNumber">'
+        '<text:list-level-style-number text:level="1" style:num-format="1" style:num-suffix="."/>'
+        '</text:list-style>'
+        '</office:automatic-styles>'
         '<office:body><office:text>' + ''.join(body) + '</office:text></office:body>'
         '</office:document-content>'
     )
     mimetype = 'application/vnd.oasis.opendocument.text'
+    styles_xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<office:document-styles '
+        'xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" '
+        'xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">'
+        '<office:styles>'
+        '<text:list-style style:name="ListBullet" '
+        'xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0">'
+        '<text:list-level-style-bullet text:level="1" text:bullet-char="•"/>'
+        '</text:list-style>'
+        '<text:list-style style:name="ListNumber" '
+        'xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0">'
+        '<text:list-level-style-number text:level="1" style:num-format="1" style:num-suffix="."/>'
+        '</text:list-style>'
+        '</office:styles>'
+        '</office:document-styles>'
+    )
     manifest = (
         '<?xml version="1.0" encoding="UTF-8"?>'
         '<manifest:manifest '
@@ -188,11 +300,13 @@ def _write_odt(document: Document) -> bytes:
         '<manifest:file-entry manifest:media-type="application/vnd.oasis.opendocument.text" '
         'manifest:full-path="/"/>'
         '<manifest:file-entry manifest:media-type="text/xml" manifest:full-path="content.xml"/>'
+        '<manifest:file-entry manifest:media-type="text/xml" manifest:full-path="styles.xml"/>'
         '</manifest:manifest>'
     )
     return _zip_save({
         'mimetype': mimetype.encode('ascii'),
         'content.xml': content_xml.encode('utf-8'),
+        'styles.xml': styles_xml.encode('utf-8'),
         'META-INF/manifest.xml': manifest.encode('utf-8'),
     })
 
@@ -415,6 +529,20 @@ def _write_epub(document: Document) -> bytes:
             body_parts.append(f'<h{block.level}>{escape(inlines_to_plain(block.inlines))}</h{block.level}>')
         elif isinstance(block, Paragraph):
             body_parts.append(f'<p>{escape(inlines_to_plain(block.inlines))}</p>')
+        elif isinstance(block, BulletList):
+            body_parts.append('<ul>')
+            for item in block.items:
+                for sub in block_text_paragraphs(item):
+                    body_parts.append(f'<li>{escape(sub)}</li>')
+            body_parts.append('</ul>')
+        elif isinstance(block, OrderedList):
+            body_parts.append('<ol>')
+            for item in block.items:
+                for sub in block_text_paragraphs(item):
+                    body_parts.append(f'<li>{escape(sub)}</li>')
+            body_parts.append('</ol>')
+        elif isinstance(block, CodeBlock):
+            body_parts.append(f'<pre><code>{escape(block.text)}</code></pre>')
     chapter_xml = (
         '<?xml version="1.0" encoding="UTF-8"?>'
         '<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><title>Chapter</title></head>'

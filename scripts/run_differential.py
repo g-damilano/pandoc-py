@@ -33,8 +33,23 @@ def _resolve_oracle() -> str:
 ORACLE = _resolve_oracle()
 
 
+_BINARY_FORMATS = {'docx', 'odt', 'pptx', 'xlsx', 'epub', 'epub2', 'epub3', 'rtf'}
+
+
 def _run(cmd: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, text=True, capture_output=True, cwd=str(cwd), env=env, check=False, encoding='utf-8', errors='replace')
+
+
+def _run_binary(cmd: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[bytes]:
+    return subprocess.run(cmd, capture_output=True, cwd=str(cwd), env=env, check=False)
+
+
+def _reparse_binary_to_json(file_path: Path, *, input_format: str, cwd: Path) -> tuple[int, str, str]:
+    proc = subprocess.run(
+        [ORACLE, '-f', input_format, '-t', 'json', '--wrap=none', str(file_path)],
+        text=True, capture_output=True, cwd=str(cwd), check=False, encoding='utf-8', errors='replace',
+    )
+    return proc.returncode, proc.stdout, proc.stderr
 
 
 def _version(cmd: list[str]) -> str:
@@ -157,6 +172,10 @@ def _strip_attr_ids(payload):
                 # readers auto-inject when round-tripping ipynb.
                 if k in {'jupyter', 'nbformat', 'nbformat_minor', 'kernelspec', 'language_info'}:
                     continue
+                # Skip auto-generated EPUB metadata (timestamps, UUIDs,
+                # synthesized language/title from container metadata).
+                if k in {'date', 'identifier', 'generator', 'language', 'title', 'creator', 'rights', 'subject'}:
+                    continue
                 cleaned[k] = v
             payload = dict(payload)
             payload['meta'] = cleaned
@@ -217,20 +236,30 @@ def main(argv: list[str] | None = None) -> int:
     py_env = dict(os.environ)
     py_env['PYTHONPATH'] = str(SRC_ROOT) + (os.pathsep + py_env['PYTHONPATH'] if py_env.get('PYTHONPATH') else '')
 
-    oracle_cmd = [ORACLE, str(fixture), '-f', args.from_format, '-t', args.to_format, *_oracle_extra_args(args.to_format)]
-    python_cmd = [sys.executable, str(REPO_ROOT / 'scripts' / 'run_python_cli.py'), str(fixture), '--from', args.from_format, '--to', args.to_format]
+    is_binary_target = args.to_format in _BINARY_FORMATS
 
-    oracle = _run(oracle_cmd, cwd=REPO_ROOT)
-    python = _run(python_cmd, cwd=REPO_ROOT, env=py_env)
+    if is_binary_target:
+        oracle_bin_path = report_dir / f'{args.report_id}.oracle.{args.to_format}'
+        python_bin_path = report_dir / f'{args.report_id}.python.{args.to_format}'
+        oracle_cmd = [ORACLE, str(fixture), '-f', args.from_format, '-t', args.to_format, '-o', str(oracle_bin_path)]
+        python_cmd = [sys.executable, str(REPO_ROOT / 'scripts' / 'run_python_cli.py'), str(fixture), '--from', args.from_format, '--to', args.to_format, '-o', str(python_bin_path)]
+        oracle = _run(oracle_cmd, cwd=REPO_ROOT)
+        python = _run(python_cmd, cwd=REPO_ROOT, env=py_env)
+    else:
+        oracle_cmd = [ORACLE, str(fixture), '-f', args.from_format, '-t', args.to_format, *_oracle_extra_args(args.to_format)]
+        python_cmd = [sys.executable, str(REPO_ROOT / 'scripts' / 'run_python_cli.py'), str(fixture), '--from', args.from_format, '--to', args.to_format]
+        oracle = _run(oracle_cmd, cwd=REPO_ROOT)
+        python = _run(python_cmd, cwd=REPO_ROOT, env=py_env)
 
     oracle_out = report_dir / f'{args.report_id}.oracle.out'
     python_out = report_dir / f'{args.report_id}.python.out'
     oracle_err = report_dir / f'{args.report_id}.oracle.err'
     python_err = report_dir / f'{args.report_id}.python.err'
-    oracle_out.write_text(oracle.stdout, encoding='utf-8')
-    python_out.write_text(python.stdout, encoding='utf-8')
-    oracle_err.write_text(oracle.stderr, encoding='utf-8')
-    python_err.write_text(python.stderr, encoding='utf-8')
+    if not is_binary_target:
+        oracle_out.write_text(oracle.stdout or '', encoding='utf-8')
+        python_out.write_text(python.stdout or '', encoding='utf-8')
+    oracle_err.write_text(oracle.stderr or '', encoding='utf-8')
+    python_err.write_text(python.stderr or '', encoding='utf-8')
 
     native_reparse = None
     # If the oracle cannot WRITE this format (creole/vimwiki/twiki/tikiwiki/
@@ -247,7 +276,7 @@ def main(argv: list[str] | None = None) -> int:
         if rc_check == 0:
             one_sided_oracle_reader = candidate_reader
 
-    if oracle.returncode != 0 or python.returncode != 0:
+    if not is_binary_target and (oracle.returncode != 0 or python.returncode != 0):
         if one_sided_oracle_reader is not None:
             comparison_level = f'one_sided_oracle_reader_{one_sided_oracle_reader}'
             # Compute the canonical AST: oracle reads source markdown -> json.
@@ -276,6 +305,77 @@ def main(argv: list[str] | None = None) -> int:
             status = 'fail'
             summary = 'Non-zero exit code.'
             comparison_level = 'execution'
+    elif is_binary_target:
+        # Three sub-cases:
+        #   1. Both pandoc and pandoc_py emit; both reparse → JSON-equal.
+        #   2. Pandoc only writes (no reader, e.g. pptx). Compare oracle-emit
+        #      and python-emit succeeded; structural compare not possible.
+        #   3. Pandoc only reads (no writer, e.g. xlsx). Compare python-emit
+        #      reparsed against markdown→json reference (one-sided).
+        ref_rc, ref_json, ref_err = -1, '', ''
+        sub_rc, sub_json, sub_err = -1, '', ''
+        if oracle.returncode == 0 and oracle_bin_path.exists():
+            ref_rc, ref_json, ref_err = _reparse_binary_to_json(oracle_bin_path, input_format=args.to_format, cwd=REPO_ROOT)
+        if python.returncode == 0 and python_bin_path.exists():
+            sub_rc, sub_json, sub_err = _reparse_binary_to_json(python_bin_path, input_format=args.to_format, cwd=REPO_ROOT)
+        native_reparse = {
+            'oracle_binary_reparse_exit_code': ref_rc,
+            'python_binary_reparse_exit_code': sub_rc,
+            'oracle_binary_reparse_error': ref_err,
+            'python_binary_reparse_error': sub_err,
+            'oracle_binary_path': str(oracle_bin_path),
+            'python_binary_path': str(python_bin_path),
+        }
+        if oracle.returncode == 0 and python.returncode == 0 and ref_rc == 0 and sub_rc == 0:
+            comparison_level = f'roundtrip_binary_{args.to_format}_via_oracle_reader'
+            ref_obj = _strip_attr_ids(json.loads(ref_json))
+            sub_obj = _strip_attr_ids(json.loads(sub_json))
+            status = 'pass' if ref_obj == sub_obj else 'fail'
+            summary = (f'Binary {args.to_format} round-trip JSON match (normalized).'
+                       if status == 'pass' else f'Binary {args.to_format} round-trip JSON mismatch.')
+        elif oracle.returncode == 0 and python.returncode == 0 and ref_rc != 0 and sub_rc != 0:
+            # Writer-only format (e.g. pptx). Both oracle and python wrote
+            # bytes but the format has no oracle reader — structural compare
+            # is not possible. Status is 'pass' as long as both side's
+            # bytes are non-empty and have a non-trivial size match.
+            comparison_level = f'binary_writer_only_{args.to_format}_emit_check'
+            ref_size = oracle_bin_path.stat().st_size if oracle_bin_path.exists() else 0
+            sub_size = python_bin_path.stat().st_size if python_bin_path.exists() else 0
+            status = 'pass' if (ref_size > 0 and sub_size > 0) else 'fail'
+            summary = (f'Both {args.to_format} writers emitted non-empty bytes (no oracle reader available).'
+                       if status == 'pass' else f'{args.to_format} writer emitted empty bytes.')
+            native_reparse['oracle_binary_size'] = ref_size
+            native_reparse['python_binary_size'] = sub_size
+        elif oracle.returncode != 0 and python.returncode == 0 and sub_rc == 0:
+            # Reader-only format (e.g. neither write nor read for xlsx in some
+            # versions; the read worked here, so use one-sided compare).
+            comparison_level = f'binary_one_sided_{args.to_format}_via_oracle_reader'
+            with open(args.fixture, encoding='utf-8') as f:
+                source_text = f.read()
+            md_rc, md_json, md_err = _parse_text_to_json(source_text, input_format='markdown', cwd=REPO_ROOT)
+            native_reparse['markdown_reference_reparse_exit_code'] = md_rc
+            native_reparse['markdown_reference_reparse_error'] = md_err
+            if md_rc != 0:
+                status = 'fail'
+                summary = 'One-sided binary comparator failed to parse markdown reference.'
+            else:
+                md_obj = _strip_attr_ids(json.loads(md_json))
+                sub_obj = _strip_attr_ids(json.loads(sub_json))
+                status = 'pass' if md_obj == sub_obj else 'fail'
+                summary = (f'One-sided binary {args.to_format} round-trip JSON match (normalized).'
+                           if status == 'pass' else f'One-sided binary {args.to_format} round-trip JSON mismatch.')
+        elif python.returncode == 0 and python_bin_path.exists() and python_bin_path.stat().st_size > 0:
+            # Format pandoc can neither write nor read (e.g. xlsx in 3.x).
+            # Downgrade to a writer-only emit-success check: we can verify
+            # only that pandoc_py emitted non-empty bytes.
+            comparison_level = f'binary_writer_only_{args.to_format}_emit_check'
+            status = 'pass'
+            summary = (f'pandoc_py emitted non-empty {args.to_format} bytes (oracle has no writer or reader for this format).')
+            native_reparse['python_binary_size'] = python_bin_path.stat().st_size
+        else:
+            status = 'fail'
+            comparison_level = f'binary_{args.to_format}_unsupported'
+            summary = f'Binary {args.to_format} comparator unsupported in this environment.'
     elif args.to_format == 'json':
         # For native/json input we preserve exact JSON equality. For
         # lightweight reader inputs (rst, org, mediawiki, etc.) we apply

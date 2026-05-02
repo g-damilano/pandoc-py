@@ -17,11 +17,21 @@ def _read_input(path: str) -> str:
     return Path(path).read_text(encoding='utf-8')
 
 
-def _write_output(text: str, output_path: str | None = None) -> None:
+def _write_output(text: str | bytes, output_path: str | None = None) -> None:
     if output_path is None:
-        sys.stdout.write(text)
+        if isinstance(text, bytes):
+            buf = getattr(sys.stdout, 'buffer', None)
+            if buf is not None:
+                buf.write(text)
+            else:
+                sys.stdout.write(text.decode('latin-1'))
+        else:
+            sys.stdout.write(text)
         return
-    Path(output_path).write_text(text, encoding='utf-8')
+    if isinstance(text, bytes):
+        Path(output_path).write_bytes(text)
+    else:
+        Path(output_path).write_text(text, encoding='utf-8')
 
 
 def _ensure_utf8_streams() -> None:
