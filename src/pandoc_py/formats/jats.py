@@ -52,7 +52,9 @@ def _read_jats(source: str) -> Document:
             for child in el:
                 walk(child, depth + 1)
 
-    walk(root, 0)
+    # Start at depth=-2 so the first <sec> inside <article><body> produces
+    # an H1 (matches pandoc's JATS reader convention).
+    walk(root, -2)
     return Document(blocks=blocks, source_format='jats')
 
 

@@ -523,19 +523,64 @@ register_writer(PptxWriter())
 
 # Pptx reader — best-effort: pick text out of slide XML files.
 def _read_pptx(source) -> Document:
+    """PPTX reader.
+
+    Each ``ppt/slides/slide*.xml`` becomes one slide. The first text
+    shape on a slide is captured as a Heading (level 1, the slide
+    title). Subsequent shapes are walked paragraph-by-paragraph; an
+    ``<a:p>`` whose ``<a:pPr>`` carries ``<a:buChar>`` is collected as
+    a bullet-list item; ``<a:buAutoNum>`` triggers an OrderedList; an
+    ``<a:p>`` without a bullet marker is a Paragraph. Consecutive
+    bullet items collapse into a single BulletList/OrderedList block.
+    """
     data = _coerce_bytes(source)
-    blocks = []
+    blocks: list = []
+    a_ns = 'http://schemas.openxmlformats.org/drawingml/2006/main'
+    a_t = '{' + a_ns + '}'
     with zipfile.ZipFile(io.BytesIO(data)) as zf:
         for name in sorted(zf.namelist()):
-            if name.startswith('ppt/slides/slide') and name.endswith('.xml'):
-                xml = zf.read(name).decode('utf-8')
-                root = ET.fromstring(xml)
-                texts = [(t.text or '') for t in root.iter() if t.tag.split('}')[-1] == 't']
-                texts = [t for t in texts if t.strip()]
-                if texts:
-                    blocks.append(Heading(level=1, inlines=text_to_inlines(texts[0])))
-                    for body in texts[1:]:
-                        blocks.append(Paragraph(inlines=text_to_inlines(body)))
+            if not (name.startswith('ppt/slides/slide') and name.endswith('.xml')):
+                continue
+            xml = zf.read(name).decode('utf-8')
+            root = ET.fromstring(xml)
+            shape_paragraphs: list[tuple[str, str]] = []  # (kind, text)
+            for sp in root.iter():
+                if sp.tag.split('}')[-1] != 'sp':
+                    continue
+                for p in sp.iter(a_t + 'p'):
+                    text = ''.join((t.text or '') for t in p.iter(a_t + 't')).strip()
+                    if not text:
+                        continue
+                    kind = 'para'
+                    pPr = p.find(a_t + 'pPr')
+                    if pPr is not None:
+                        if pPr.find(a_t + 'buChar') is not None:
+                            kind = 'bullet'
+                        elif pPr.find(a_t + 'buAutoNum') is not None:
+                            kind = 'ordered'
+                    shape_paragraphs.append((kind, text))
+            if not shape_paragraphs:
+                continue
+            # Title is the first non-bullet, non-ordered paragraph.
+            title_idx = next((i for i, (k, _) in enumerate(shape_paragraphs) if k == 'para'), None)
+            if title_idx is not None:
+                blocks.append(Heading(level=1, inlines=text_to_inlines(shape_paragraphs[title_idx][1])))
+                rest = shape_paragraphs[:title_idx] + shape_paragraphs[title_idx + 1:]
+            else:
+                rest = list(shape_paragraphs)
+            i = 0
+            while i < len(rest):
+                kind, text = rest[i]
+                if kind in {'bullet', 'ordered'}:
+                    items = []
+                    target_kind = kind
+                    while i < len(rest) and rest[i][0] == target_kind:
+                        items.append([Paragraph(inlines=text_to_inlines(rest[i][1]), is_plain=True)])
+                        i += 1
+                    blocks.append(BulletList(items=items) if target_kind == 'bullet' else OrderedList(items=items))
+                else:
+                    blocks.append(Paragraph(inlines=text_to_inlines(text)))
+                    i += 1
     return Document(blocks=blocks, source_format='pptx')
 
 
@@ -551,14 +596,46 @@ register_reader(PptxReader())
 # ----- XLSX ---------------------------------------------------------------
 
 def _write_xlsx(document: Document) -> bytes:
-    # Each Heading / Paragraph becomes a row in Sheet1.
-    rows: list[str] = []
-    for idx, block in enumerate(document.blocks):
-        text = inlines_to_plain(getattr(block, 'inlines', [])) or getattr(block, 'text', '')
-        rows.append(f'<row r="{idx + 1}"><c r="A{idx + 1}" t="inlineStr"><is><t>{escape(text)}</t></is></c></row>')
+    """XLSX writer.
+
+    Table blocks expand to one ``<row>`` per row (header + body) with one
+    ``<c>`` per cell (column ``A`` onward). Non-table blocks fall back to
+    one row per block in column ``A``.
+    """
+    from pandoc_py.ast import Table
+    rows_xml: list[str] = []
+    row_idx = 0
+
+    def col_letter(n: int) -> str:
+        out = ''
+        while n >= 0:
+            out = chr(ord('A') + n % 26) + out
+            n = n // 26 - 1
+            if n < 0:
+                break
+        return out
+
+    def emit_row(values: list[str]) -> None:
+        nonlocal row_idx
+        row_idx += 1
+        cells = ''.join(
+            f'<c r="{col_letter(i)}{row_idx}" t="inlineStr"><is><t>{escape(v)}</t></is></c>'
+            for i, v in enumerate(values)
+        )
+        rows_xml.append(f'<row r="{row_idx}">{cells}</row>')
+
+    for block in document.blocks:
+        if isinstance(block, Table):
+            if block.headers:
+                emit_row([inlines_to_plain(cell) for cell in block.headers])
+            for row in block.rows:
+                emit_row([inlines_to_plain(cell) for cell in row])
+        else:
+            text = inlines_to_plain(getattr(block, 'inlines', [])) or getattr(block, 'text', '')
+            emit_row([text])
     sheet_xml = ('<?xml version="1.0"?>'
                  '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-                 '<sheetData>' + ''.join(rows) + '</sheetData></worksheet>')
+                 '<sheetData>' + ''.join(rows_xml) + '</sheetData></worksheet>')
     workbook_xml = ('<?xml version="1.0"?>'
                     '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
                     'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'

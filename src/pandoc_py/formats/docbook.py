@@ -64,7 +64,9 @@ def _read_docbook(source: str) -> Document:
             for child in el:
                 walk(child, depth + 1)
 
-    walk(root, 0)
+    # Start at depth=-1 so a section that is a direct child of <article>
+    # produces an H1 (matching pandoc's docbook reader convention).
+    walk(root, -1)
     return Document(blocks=blocks, source_format='docbook')
 
 

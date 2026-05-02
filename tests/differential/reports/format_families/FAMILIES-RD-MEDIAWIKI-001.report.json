@@ -5,7 +5,7 @@
   "comparison_level": "structured_json_normalized_mediawiki",
   "oracle_command": [
     "C:\\Program Files\\Pandoc\\pandoc.exe",
-    "C:\\Users\\giaco\\AppData\\Local\\Temp\\sample.mediawiki",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\fixtures\\format_families\\generated\\sample.mediawiki",
     "-f",
     "mediawiki",
     "-t",
@@ -14,7 +14,7 @@
   "python_command": [
     "C:\\Python314\\python.exe",
     "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\scripts\\run_python_cli.py",
-    "C:\\Users\\giaco\\AppData\\Local\\Temp\\sample.mediawiki",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\fixtures\\format_families\\generated\\sample.mediawiki",
     "--from",
     "mediawiki",
     "--to",

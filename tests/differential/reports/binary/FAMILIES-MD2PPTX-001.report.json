@@ -40,6 +40,6 @@
   "python_binary_reparse_error": "Unknown input format pptx\n",
   "oracle_binary_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\binary\\FAMILIES-MD2PPTX-001.oracle.pptx",
   "python_binary_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\binary\\FAMILIES-MD2PPTX-001.python.pptx",
-  "oracle_binary_size": 27667,
+  "oracle_binary_size": 27668,
   "python_binary_size": 1185
 }

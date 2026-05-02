@@ -2,7 +2,7 @@
   "fixture_id": "FAMILIES-MD2MARKDOWN_MMD-001",
   "input_format": "markdown",
   "output_format": "markdown_mmd",
-  "comparison_level": "byte",
+  "comparison_level": "roundtrip_via_markdown_mmd_normalized",
   "oracle_command": [
     "C:\\Program Files\\Pandoc\\pandoc.exe",
     "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\fixtures\\format_families\\simple.md",
@@ -25,7 +25,7 @@
   "oracle_exit_code": 0,
   "python_exit_code": 0,
   "status": "pass",
-  "summary": "Byte-for-byte match.",
+  "summary": "markdown_mmd round-trip JSON match (via markdown_mmd reader, normalized).",
   "oracle_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2MARKDOWN_MMD-001.oracle.out",
   "python_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2MARKDOWN_MMD-001.python.out",
   "oracle_stderr_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\format_families\\FAMILIES-MD2MARKDOWN_MMD-001.oracle.err",
