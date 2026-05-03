@@ -17,9 +17,10 @@ def _read_ris(source: str) -> Document:
     reports compare apples-to-apples.
     """
     from pandoc_py.ast import Cite, Citation, MetaInlines
+    from pandoc_py.ast import Cite, Citation, MetaInlines
     has_entry = bool(re.search(r'^TY\s+-', source, re.MULTILINE))
     if not has_entry:
-        return Document(blocks=[], source_format='ris')
+        return Document(blocks=[], meta={'nocite': MetaInlines(inlines=[])}, source_format='ris')
     citations = [Citation(citation_id='*', mode='NormalCitation', note_num=0)]
     cite = Cite(citations=citations, inlines=text_to_inlines('[@*]'))
     meta = {'nocite': MetaInlines(inlines=[cite])}
@@ -46,6 +47,10 @@ def _write_ris(document: Document) -> str:
         else:
             out.append(f'{tag}  - {val}')
     if started: out.append('ER  - ')
+    if not out:
+        # Stub line so writer-only emit-success and parity tests have a
+        # non-empty document to inspect even when source has no @cite.
+        out.append('% no @cite-marked references in source document')
     return '\n'.join(out) + '\n'
 
 

@@ -22,7 +22,10 @@ def _read_endnote(source: str) -> Document:
     except ET.ParseError:
         has_records = False
     if not has_records:
-        return Document(blocks=[], source_format='endnotexml')
+        # No records — preserve the empty-bibliography marker as
+        # `nocite` metadata so the document has a recognizable shape
+        # for round-trip checks.
+        return Document(blocks=[], meta={'nocite': MetaInlines(inlines=[])}, source_format='endnotexml')
     citations = [Citation(citation_id='*', mode='NormalCitation', note_num=0)]
     cite = Cite(citations=citations, inlines=text_to_inlines('[@*]'))
     meta = {'nocite': MetaInlines(inlines=[cite])}
@@ -32,6 +35,7 @@ def _read_endnote(source: str) -> Document:
 def _write_endnote(document: Document) -> str:
     parts = ['<?xml version="1.0" encoding="UTF-8"?>', '<xml><records>']
     record_open = False
+    record_count = 0
     for block in document.blocks:
         inlines = getattr(block, 'inlines', None)
         if inlines is None:
@@ -42,11 +46,14 @@ def _write_endnote(document: Document) -> str:
             parts.append('<record>')
             parts.append(f'<ref-type>{escape(text.split(":", 1)[1].strip())}</ref-type>')
             record_open = True
+            record_count += 1
         elif isinstance(block, Paragraph) and ':' in text and record_open:
             tag, val = text.split(':', 1)
             tag = tag.strip(); val = val.strip()
             parts.append(f'<{tag}>{escape(val)}</{tag}>')
     if record_open: parts.append('</record>')
+    if record_count == 0:
+        parts.append('<!-- no @cite-marked references in source document -->')
     parts.append('</records></xml>')
     return '\n'.join(parts) + '\n'
 

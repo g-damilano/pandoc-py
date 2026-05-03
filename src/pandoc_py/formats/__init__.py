@@ -58,9 +58,12 @@ from . import rst             # noqa: F401
 from . import rtf             # noqa: F401
 from . import textile         # noqa: F401
 from . import tikiwiki        # noqa: F401
+from . import tsv             # noqa: F401
 from . import twiki           # noqa: F401
 from . import txt2tags        # noqa: F401
 from . import typst           # noqa: F401
+from . import vimdoc          # noqa: F401
 from . import vimwiki         # noqa: F401
 from . import writer_only     # noqa: F401
 from . import xml_format      # noqa: F401
+from . import xwiki           # noqa: F401

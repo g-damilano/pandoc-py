@@ -30,11 +30,18 @@ def _read_bibtex(source: str) -> Document:
     for m in _ENTRY_RE.finditer(source):
         keys.append(m.group(2).strip())
     if not keys:
-        return Document(blocks=[], source_format='bibtex')
+        from pandoc_py.ast import MetaInlines
+        return Document(blocks=[], meta={'nocite': MetaInlines(inlines=[])}, source_format='bibtex')
     citations = [Citation(citation_id='*', mode='NormalCitation', note_num=0)]
     cite = Cite(citations=citations, inlines=text_to_inlines('[@*]'))
     meta = {'nocite': MetaInlines(inlines=[cite])}
     return Document(blocks=[], meta=meta, source_format='bibtex')
+
+
+def _write_bibtex_stub_when_empty(out: list[str]) -> list[str]:
+    if not out or all(not line.strip() for line in out):
+        return ['% no @cite-marked references in source document']
+    return out
 
 
 def _write_bibtex(document: Document) -> str:
@@ -68,7 +75,7 @@ def _write_bibtex(document: Document) -> str:
             if m and current_key is not None:
                 current_fields.append((m.group(1), m.group(2)))
     flush()
-    return '\n'.join(out) + '\n'
+    return '\n'.join(_write_bibtex_stub_when_empty(out)) + '\n'
 
 
 class BibtexReader(Reader):

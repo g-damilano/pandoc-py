@@ -37,20 +37,34 @@ def bootstrap() -> None:
     _BOOTSTRAPPED = True
 
     # Readers
-    register_reader(_CallableReader('markdown', read_markdown))
+    register_reader(_CallableReader(
+        'markdown', read_markdown,
+        aliases=('markdown_strict', 'markdown_phpextra', 'markdown_mmd'),
+    ))
     register_reader(_CallableReader('json', read_pandoc_json, aliases=('pandoc-json',)))
-    register_reader(_CallableReader('commonmark', read_commonmark))
-    register_reader(_CallableReader('commonmark_x', read_commonmark_x, aliases=('commonmark-x',)))
-    register_reader(_CallableReader('html', read_html, aliases=('html5', 'xhtml')))
+    register_reader(_CallableReader(
+        'commonmark', read_commonmark,
+    ))
+    register_reader(_CallableReader(
+        'commonmark_x', read_commonmark_x,
+        aliases=('commonmark-x', 'gfm', 'markdown_github'),
+    ))
+    register_reader(_CallableReader('html', read_html, aliases=('html5', 'html4', 'xhtml')))
     register_reader(_CallableReader('native', read_native))
 
     # Writers
-    register_writer(_CallableWriter('markdown', write_markdown))
+    register_writer(_CallableWriter(
+        'markdown', write_markdown,
+        aliases=('markdown_strict', 'markdown_phpextra', 'markdown_mmd'),
+    ))
     register_writer(_CallableWriter('json', write_pandoc_json, aliases=('pandoc-json',)))
-    register_writer(_CallableWriter('html', write_html, aliases=('html5', 'xhtml')))
+    register_writer(_CallableWriter('html', write_html, aliases=('html5', 'html4', 'xhtml')))
     register_writer(_CallableWriter('native', write_native, accepts_standalone=True))
     register_writer(_CallableWriter('commonmark', write_commonmark))
-    register_writer(_CallableWriter('commonmark_x', write_commonmark_x, aliases=('commonmark-x',)))
+    register_writer(_CallableWriter(
+        'commonmark_x', write_commonmark_x,
+        aliases=('commonmark-x', 'gfm', 'markdown_github'),
+    ))
 
 
 bootstrap()
