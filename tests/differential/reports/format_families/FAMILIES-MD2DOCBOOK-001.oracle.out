@@ -1,0 +1,24 @@
+<section xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="heading">
+  <title>Heading</title>
+  <para>
+    A paragraph.
+  </para>
+  <itemizedlist spacing="compact">
+    <listitem>
+      <para>
+        one
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        two
+      </para>
+    </listitem>
+  </itemizedlist>
+  <para>
+    A code block follows:
+  </para>
+  <programlisting>
+print(1)
+</programlisting>
+</section>

@@ -1,0 +1,18 @@
+<?xml version='1.0' ?>
+<Pandoc api-version="1,23,1">
+<meta />
+<blocks>
+<Header id="heading" level="1">Heading</Header>
+<Para>A paragraph.</Para>
+<BulletList>
+<item>
+<Plain>one</Plain>
+</item>
+<item>
+<Plain>two</Plain>
+</item>
+</BulletList>
+<Para>A code block follows:</Para>
+<CodeBlock>print(1)</CodeBlock>
+</blocks>
+</Pandoc>

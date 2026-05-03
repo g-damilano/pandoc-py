@@ -305,9 +305,16 @@ def _item_is_compact(item: list[BlockNode | Block]) -> bool:
 
 def _list_item_payload(item: list[BlockNode | Block], ctx: _JsonWriterContext, loose: bool) -> list[dict[str, object]]:
     payloads: list[dict[str, object]] = []
-    first_plain = (not loose) and _item_is_compact(item)
+    first_plain_default = (not loose) and _item_is_compact(item)
     for idx, subblock in enumerate(item):
-        payloads.append(_block_to_payload(subblock, ctx, plain_in_list=(idx == 0 and first_plain)))
+        if isinstance(subblock, Paragraph) and idx == 0:
+            if subblock.is_plain is None:
+                use_plain = first_plain_default
+            else:
+                use_plain = subblock.is_plain
+            payloads.append(_block_to_payload(subblock, ctx, plain_in_list=use_plain))
+        else:
+            payloads.append(_block_to_payload(subblock, ctx, plain_in_list=(idx == 0 and first_plain_default)))
     return payloads
 
 

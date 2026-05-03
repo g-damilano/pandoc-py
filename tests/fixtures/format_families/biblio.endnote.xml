@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+  <records>
+    <record>
+      <ref-type>Journal Article</ref-type>
+      <titles><title>The Title</title></titles>
+      <contributors><authors><author>Smith, J.</author></authors></contributors>
+    </record>
+  </records>
+</xml>

@@ -11,20 +11,47 @@ class CliError(RuntimeError):
     """Raised for CLI usage or conversion errors."""
 
 
-def _read_input(path: str) -> str:
+def _read_input(path: str, *, binary: bool = False) -> str | bytes:
     if path == '-':
+        if binary:
+            buf = getattr(sys.stdin, 'buffer', None)
+            return buf.read() if buf is not None else sys.stdin.read().encode('utf-8')
         return sys.stdin.read()
-    return Path(path).read_text(encoding='utf-8')
+    p = Path(path)
+    if binary:
+        return p.read_bytes()
+    return p.read_text(encoding='utf-8')
 
 
-def _write_output(text: str, output_path: str | None = None) -> None:
+def _write_output(text: str | bytes, output_path: str | None = None) -> None:
     if output_path is None:
-        sys.stdout.write(text)
+        if isinstance(text, bytes):
+            buf = getattr(sys.stdout, 'buffer', None)
+            if buf is not None:
+                buf.write(text)
+            else:
+                sys.stdout.write(text.decode('latin-1'))
+        else:
+            sys.stdout.write(text)
         return
-    Path(output_path).write_text(text, encoding='utf-8')
+    if isinstance(text, bytes):
+        Path(output_path).write_bytes(text)
+    else:
+        Path(output_path).write_text(text, encoding='utf-8')
+
+
+def _ensure_utf8_streams() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding='utf-8', errors='replace')
+            except (ValueError, OSError):
+                pass
 
 
 def main(argv: list[str] | None = None) -> int:
+    _ensure_utf8_streams()
     try:
         options = parse_cli_options(argv)
     except OptionError as exc:
@@ -36,7 +63,15 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     try:
-        source = _read_input(options.input_path)
+        # Detect whether the input format is binary so we read bytes (not
+        # decode as utf-8). The registry knows.
+        binary_input = False
+        try:
+            from pandoc_py.io import get_reader
+            binary_input = bool(getattr(get_reader(options.from_format), 'binary', False))
+        except KeyError:
+            pass
+        source = _read_input(options.input_path, binary=binary_input)
         output = convert_text(source, options.from_format, options.to_format, standalone=options.standalone)
         _write_output(output, options.output_path)
         return 0

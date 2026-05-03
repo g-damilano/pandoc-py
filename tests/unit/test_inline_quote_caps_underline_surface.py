@@ -42,7 +42,7 @@ def test_pandoc_json_reader_accepts_underline_smallcaps_quoted() -> None:
             SmallCaps([Str('beta')]),
             Space(),
             Quoted([Str('gamma')], quote_type='SingleQuote'),
-        ])
+        ], is_plain=False)
     ]
 
 
@@ -68,7 +68,7 @@ def test_native_reader_and_writer_support_underline_smallcaps_quoted() -> None:
             SmallCaps([Str('beta')]),
             Space(),
             Quoted([Str('gamma')], quote_type='SingleQuote'),
-        ])
+        ], is_plain=False)
     ]
     rendered = write_native(document)
     assert 'Underline [Str "alpha"]' in rendered

@@ -11,7 +11,10 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+if str(REPO_ROOT / 'tests') not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / 'tests'))
 
+from _oracle import oracle_or_skip
 from pandoc_py.ast import Document, Heading, Paragraph, Space, Str
 from pandoc_py.readers.markdown import read_markdown
 from pandoc_py.writers.native import write_native
@@ -19,12 +22,14 @@ from pandoc_py.writers.native import write_native
 
 def _reparse_native_to_json(native_text: str) -> dict[str, object]:
     proc = subprocess.run(
-        ['/usr/bin/pandoc', '-f', 'native', '-t', 'json', '--wrap=none'],
+        [oracle_or_skip(), '-f', 'native', '-t', 'json', '--wrap=none'],
         input=native_text,
         text=True,
         capture_output=True,
         cwd=str(REPO_ROOT),
         check=False,
+        encoding='utf-8',
+        errors='replace',
     )
     assert proc.returncode == 0, proc.stderr
     return json.loads(proc.stdout)
@@ -32,12 +37,14 @@ def _reparse_native_to_json(native_text: str) -> dict[str, object]:
 
 def _oracle_json_from_markdown(markdown_text: str) -> dict[str, object]:
     proc = subprocess.run(
-        ['/usr/bin/pandoc', '-f', 'markdown', '-t', 'json', '--wrap=none'],
+        [oracle_or_skip(), '-f', 'markdown', '-t', 'json', '--wrap=none'],
         input=markdown_text,
         text=True,
         capture_output=True,
         cwd=str(REPO_ROOT),
         check=False,
+        encoding='utf-8',
+        errors='replace',
     )
     assert proc.returncode == 0, proc.stderr
     return json.loads(proc.stdout)

@@ -1,0 +1,12 @@
+.SH Heading
+A paragraph.
+.IP \(bu 2
+one
+.IP \(bu 2
+two
+.PP
+A code block follows:
+.IP
+.EX
+print(1)
+.EE

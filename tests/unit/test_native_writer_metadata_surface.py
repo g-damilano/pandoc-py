@@ -18,19 +18,26 @@ def test_write_native_keeps_block_list_surface_without_meta() -> None:
     assert text == '[Para [Str "alpha"]]\n'
 
 
-def test_write_native_emits_pandoc_wrapper_when_meta_present() -> None:
+def test_write_native_emits_pandoc_wrapper_when_meta_present_and_standalone() -> None:
     document = read_native('Pandoc nullMeta [ Para [ Str "alpha" ] ]\n')
     document = document.__class__(blocks=document.blocks, meta={'flag': MetaBool(True)}, source_format=document.source_format)
-    rendered = write_native(document)
+    rendered = write_native(document, standalone=True)
     assert rendered.startswith('Pandoc Meta { unMeta = fromList [(')
     assert '("flag",MetaBool True)' in rendered
     assert rendered.endswith('[Para [Str "alpha"]]\n')
 
 
-def test_write_native_preserves_wrapper_surface_for_native_pandoc_source() -> None:
+def test_write_native_drops_meta_in_non_standalone_mode_matching_oracle() -> None:
+    document = read_native('Pandoc nullMeta [ Para [ Str "alpha" ] ]\n')
+    document = document.__class__(blocks=document.blocks, meta={'flag': MetaBool(True)}, source_format=document.source_format)
+    rendered = write_native(document)
+    assert rendered == '[Para [Str "alpha"]]\n'
+
+
+def test_write_native_preserves_block_surface_for_native_pandoc_source() -> None:
     document = read_native('Pandoc nullMeta [ Para [ Str "alpha" ] ]\n')
     rendered = write_native(document)
-    assert rendered == 'Pandoc nullMeta [Para [Str "alpha"]]\n'
+    assert rendered == '[Para [Str "alpha"]]\n'
 
 
 def test_write_native_standalone_wraps_without_meta() -> None:
@@ -51,7 +58,7 @@ def test_write_native_roundtrips_supported_meta_value_family() -> None:
         '] }) [ Para [ Str "body" , Space , Str "text" ] ]\n'
     )
     document = read_native(source)
-    rendered = write_native(document)
+    rendered = write_native(document, standalone=True)
     reparsed = read_native(rendered)
 
     assert isinstance(reparsed.meta.get('flag'), MetaBool)
@@ -60,4 +67,4 @@ def test_write_native_roundtrips_supported_meta_value_family() -> None:
     assert isinstance(reparsed.meta.get('tags'), MetaList)
     assert isinstance(reparsed.meta.get('nested'), MetaMap)
     assert isinstance(reparsed.meta.get('abstract'), MetaBlocks)
-    assert reparsed.blocks == [Paragraph([Str('body'), Space(), Str('text')])]
+    assert reparsed.blocks == [Paragraph([Str('body'), Space(), Str('text')], is_plain=False)]

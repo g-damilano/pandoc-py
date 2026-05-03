@@ -304,13 +304,16 @@ def _list_is_loose(items: list[list[object]]) -> bool:
 
 def _write_bullet_list(block: BulletList, ctx: _MarkdownWriterContext) -> str:
     separator = '\n\n' if _list_is_loose(block.items) else '\n'
-    return separator.join(_write_list_item(item, '-   ', ctx) for item in block.items)
+    # Pandoc 3.x emits "- item" (single space). Older 3.1 emitted "-   item".
+    return separator.join(_write_list_item(item, '- ', ctx) for item in block.items)
 
 
 def _write_ordered_list(block: OrderedList, ctx: _MarkdownWriterContext) -> str:
     rendered_items: list[str] = []
     number = block.start
     for item in block.items:
+        # Pandoc 3.x ordered lists keep column-aligned 2-space markers
+        # ("1.  item") so nested content lines up.
         rendered_items.append(_write_list_item(item, f'{number}.  ', ctx))
         number += 1
     separator = '\n\n' if _list_is_loose(block.items) else '\n'
@@ -329,7 +332,7 @@ def _write_definition_list(block: DefinitionList, ctx: _MarkdownWriterContext) -
 def _write_div(block: Div, ctx: _MarkdownWriterContext) -> str:
     inner = _write_blocks(block.blocks, ctx).rstrip('\n')
     if not _attr_is_empty(block.attr):
-        return f":::{_write_attr(block.attr)}\n{inner}\n:::"
+        return f"::: {_write_attr(block.attr)}\n{inner}\n:::"
     return f":::\n{inner}\n:::"
 
 

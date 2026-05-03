@@ -1,0 +1,2 @@
+Cannot write pdf output to terminal.
+Specify an output file using the -o option, or use '-o -' to force output to stdout.

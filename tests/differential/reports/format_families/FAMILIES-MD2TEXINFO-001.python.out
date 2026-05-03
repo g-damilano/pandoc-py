@@ -1,0 +1,15 @@
+\input texinfo
+@settitle pandoc_py
+@chapter Heading
+A paragraph.
+
+@itemize @bullet
+@item one
+@item two
+@end itemize
+A code block follows:
+
+@example
+print(1)
+@end example
+@bye

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0">
+<body><section>
+<title><p>Heading</p></title>
+<p>A paragraph.</p>
+<p>• one</p>
+<p>• two</p>
+<p>A code block follows:</p>
+<empty-line/>
+<p><code>print(1)</code></p>
+<empty-line/>
+</section></body></FictionBook>

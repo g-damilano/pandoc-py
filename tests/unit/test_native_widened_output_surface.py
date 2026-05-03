@@ -60,7 +60,7 @@ def test_html_writer_supports_widened_native_inline_slice() -> None:
         ],
         source_format='native_pandoc',
     )
-    assert write_html(document) == '<p><span class="underline">Underline</span> <span class="smallcaps">Small caps</span> “quoted”</p>\n'
+    assert write_html(document) == '<p><u>Underline</u> <span class="smallcaps">Small caps</span> “quoted”</p>\n'
 
 
 def test_html_writer_supports_line_blocks_and_null_blocks() -> None:
@@ -71,7 +71,7 @@ def test_html_writer_supports_line_blocks_and_null_blocks() -> None:
         ],
         source_format='native_pandoc',
     )
-    assert write_html(document) == '<div class="line-block">\n<div class="line">one</div>\n<div class="line"><br /></div>\n<div class="line">two</div>\n</div>\n'
+    assert write_html(document) == '<div class="line-block">one<br />\n<br />\ntwo</div>\n'
 
 
 def test_convert_text_accepts_native_wrapper_on_markdown_and_html_routes() -> None:
@@ -93,7 +93,7 @@ def test_convert_text_accepts_native_wrapper_on_markdown_and_html_routes() -> No
     assert '[Small caps]{.smallcaps}' in markdown
     assert '"quoted"' in markdown
     assert '| one' in markdown and '| two' in markdown
-    assert '<span class="underline">Underline</span>' in html
+    assert '<u>Underline</u>' in html
     assert '<span class="smallcaps">Small caps</span>' in html
     assert '“quoted”' in html
     assert '<div class="line-block">' in html

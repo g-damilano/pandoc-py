@@ -11,7 +11,7 @@ class OptionError(ValueError):
     """Raised when CLI options fall outside the current supported slice."""
 
 
-_FORMAT_ALIASES = {
+_FORMAT_ALIASES_LEGACY = {
     'markdown': 'markdown',
     'json': 'json',
     'pandoc-json': 'json',
@@ -23,6 +23,28 @@ _FORMAT_ALIASES = {
     'commonmark_x': 'commonmark_x',
     'commonmark-x': 'commonmark_x',
 }
+
+
+def _build_alias_map() -> dict[str, str]:
+    """Combine the legacy explicit aliases with everything currently registered.
+
+    The registry is the source of truth; the legacy table just hard-pins a few
+    spelling variants we want to keep working.
+    """
+    from pandoc_py.io.registry import _GLOBAL  # local import: avoid import cycles
+    out = dict(_FORMAT_ALIASES_LEGACY)
+    for name in _GLOBAL.list_readers():
+        out.setdefault(name, name)
+    for name in _GLOBAL.list_writers():
+        out.setdefault(name, name)
+    for alias, canonical in _GLOBAL._reader_aliases.items():
+        out.setdefault(alias, canonical)
+    for alias, canonical in _GLOBAL._writer_aliases.items():
+        out.setdefault(alias, canonical)
+    return out
+
+
+_FORMAT_ALIASES = _build_alias_map()
 
 
 @dataclass(frozen=True)

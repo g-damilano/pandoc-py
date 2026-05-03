@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<article>
+<body>
+<sec>
+<title>Heading</title>
+</sec>
+<p>A paragraph.</p>
+<list list-type="bullet">
+<list-item>
+<p>one</p>
+</list-item>
+<list-item>
+<p>two</p>
+</list-item>
+</list>
+<p>A code block follows:</p>
+<preformat>print(1)</preformat>
+</body></article>

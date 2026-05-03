@@ -42,7 +42,7 @@ def test_normalize_format_accepts_surface_aliases() -> None:
     assert normalize_format('html5', role='output') == 'html'
 
 
-@pytest.mark.parametrize('role,value', [('input', 'docx'), ('output', 'latex')])
+@pytest.mark.parametrize('role,value', [('input', 'xyzzy_unknown'), ('output', 'xyzzy_unknown')])
 def test_normalize_format_rejects_unsupported_values(role: str, value: str) -> None:
     with pytest.raises(OptionError):
         normalize_format(value, role=role)
@@ -71,7 +71,7 @@ def test_main_writes_output_file(tmp_path: Path, capsys: pytest.CaptureFixture[s
 
 
 def test_main_returns_error_for_unsupported_route(capsys: pytest.CaptureFixture[str]) -> None:
-    rc = main(['-', '-f', 'docx', '-t', 'html'])
+    rc = main(['-', '-f', 'xyzzy_unknown', '-t', 'html'])
     assert rc == 2
     assert 'Unsupported input format' in capsys.readouterr().err
 
@@ -89,7 +89,7 @@ def test_app_convert_text_native_standalone_wraps_output() -> None:
 
 def test_app_convert_text_rejects_unknown_route() -> None:
     with pytest.raises(AppError):
-        convert_text('Hello', 'docx', 'html')
+        convert_text('Hello', 'xyzzy_unknown', 'html')
 
 
 def test_parsing_common_normalizes_newlines_and_reference_labels() -> None:

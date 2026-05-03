@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<article xmlns="http://docbook.org/ns/docbook" version="5.0">
+<section>
+<title>Heading</title>
+<para>A paragraph.</para>
+<itemizedlist>
+<listitem>
+<para>one</para>
+</listitem>
+<listitem>
+<para>two</para>
+</listitem>
+</itemizedlist>
+<para>A code block follows:</para>
+<programlisting>print(1)</programlisting>
+</section>
+</article>

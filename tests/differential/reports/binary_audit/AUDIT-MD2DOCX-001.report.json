@@ -1,0 +1,43 @@
+{
+  "fixture_id": "AUDIT-MD2DOCX-001",
+  "input_format": "markdown",
+  "output_format": "docx",
+  "comparison_level": "roundtrip_binary_docx_via_oracle_reader",
+  "oracle_command": [
+    "C:\\Program Files\\Pandoc\\pandoc.exe",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\fixtures\\format_families\\simple.md",
+    "-f",
+    "markdown",
+    "-t",
+    "docx",
+    "-o",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\binary_audit\\AUDIT-MD2DOCX-001.oracle.docx"
+  ],
+  "python_command": [
+    "C:\\Python314\\python.exe",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\scripts\\run_python_cli.py",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\fixtures\\format_families\\simple.md",
+    "--from",
+    "markdown",
+    "--to",
+    "docx",
+    "-o",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\binary_audit\\AUDIT-MD2DOCX-001.python.docx"
+  ],
+  "oracle_version": "pandoc 3.8.2",
+  "python_version": "pandoc_py 0.0.58",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Binary docx round-trip JSON match (normalized).",
+  "oracle_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\binary_audit\\AUDIT-MD2DOCX-001.oracle.out",
+  "python_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\binary_audit\\AUDIT-MD2DOCX-001.python.out",
+  "oracle_stderr_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\binary_audit\\AUDIT-MD2DOCX-001.oracle.err",
+  "python_stderr_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\binary_audit\\AUDIT-MD2DOCX-001.python.err",
+  "oracle_binary_reparse_exit_code": 0,
+  "python_binary_reparse_exit_code": 0,
+  "oracle_binary_reparse_error": "",
+  "python_binary_reparse_error": "",
+  "oracle_binary_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\binary_audit\\AUDIT-MD2DOCX-001.oracle.docx",
+  "python_binary_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\binary_audit\\AUDIT-MD2DOCX-001.python.docx"
+}

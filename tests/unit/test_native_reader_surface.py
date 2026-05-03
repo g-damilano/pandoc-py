@@ -14,13 +14,16 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+if str(REPO_ROOT / 'tests') not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / 'tests'))
 
+from _oracle import resolve_oracle
 from pandoc_py.app import convert_text
 from pandoc_py.ast import MetaBlocks, MetaBool, MetaInlines, MetaList, MetaMap, MetaString, Paragraph, Space, Str
 from pandoc_py.readers.native import read_native
 from pandoc_py.writers.pandoc_json import document_to_pandoc_json_payload
 
-PANDOC_BIN = shutil.which('pandoc')
+PANDOC_BIN = resolve_oracle()
 
 
 def _oracle_json_from_native(native_text: str) -> dict[str, object]:
@@ -33,6 +36,8 @@ def _oracle_json_from_native(native_text: str) -> dict[str, object]:
         capture_output=True,
         cwd=str(REPO_ROOT),
         check=False,
+        encoding='utf-8',
+        errors='replace',
     )
     assert proc.returncode == 0, proc.stderr
     return json.loads(proc.stdout)
@@ -179,11 +184,18 @@ def test_convert_text_accepts_native_input_on_json_route() -> None:
 
 
 def test_native_reader_accepts_top_level_pandoc_wrapper_with_null_meta() -> None:
-    native_text = 'Pandoc nullMeta [ Para [ Str "alpha" ] ]\n'
+    native_text = 'Pandoc (Meta { unMeta = fromList [] }) [ Para [ Str "alpha" ] ]\n'
     document = read_native(native_text)
     assert document.meta == {}
     assert document.source_format == 'native_pandoc'
     assert _python_json_from_native(native_text) == _oracle_json_from_native(native_text)
+
+
+def test_native_reader_accepts_pandoc_wrapper_with_nullmeta_alias() -> None:
+    native_text = 'Pandoc nullMeta [ Para [ Str "alpha" ] ]\n'
+    document = read_native(native_text)
+    assert document.meta == {}
+    assert document.source_format == 'native_pandoc'
 
 
 def test_native_reader_pandoc_wrapper_metadata_matches_oracle_json() -> None:
@@ -195,7 +207,7 @@ def test_native_reader_pandoc_wrapper_metadata_matches_oracle_json() -> None:
         , ("title", MetaInlines [Str "Alpha"])
         , ("subtitle", MetaString "Beta")
         , ("tags", MetaList [MetaString "x", MetaString "y"])
-        , ("nested", MetaMap [("inner", MetaString "z")])
+        , ("nested", MetaMap (fromList [("inner", MetaString "z")]))
         , ("abstract", MetaBlocks [Para [Str "Doc"]])
         ]
     })
@@ -213,7 +225,7 @@ def test_native_reader_pandoc_wrapper_metadata_matches_oracle_json() -> None:
 
 def test_native_reader_accepts_single_block_payload() -> None:
     document = read_native('Para [ Str "alpha" ]\n')
-    assert document.blocks == [Paragraph([Str('alpha')])]
+    assert document.blocks == [Paragraph([Str('alpha')], is_plain=False)]
     assert document.meta == {}
     assert document.source_format == 'native'
 

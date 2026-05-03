@@ -1,0 +1,11 @@
+\documentclass{beamer}
+\begin{document}
+\begin{frame}{Heading}
+A paragraph.
+\begin{itemize}
+\item one
+\item two
+\end{itemize}
+A code block follows:
+\end{frame}
+\end{document}

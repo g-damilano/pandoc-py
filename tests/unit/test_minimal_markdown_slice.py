@@ -229,7 +229,7 @@ def test_write_bullet_list() -> None:
             BulletList(items=[[Paragraph(inlines=[Str('alpha')])], [Paragraph(inlines=[Str('beta'), Space(), Code('gamma')])]])
         ]
     )
-    assert write_markdown(document) == '-   alpha\n-   beta `gamma`\n'
+    assert write_markdown(document) == '- alpha\n- beta `gamma`\n'
 
 
 def test_write_ordered_list() -> None:

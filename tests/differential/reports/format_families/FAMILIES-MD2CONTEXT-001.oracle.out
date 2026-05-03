@@ -1,0 +1,18 @@
+\startsectionlevel[title={Heading},reference={heading}]
+
+A paragraph.
+
+\startitemize[packed]
+\item
+  one
+\item
+  two
+\stopitemize
+
+A code block follows:
+
+\starttyping
+print(1)
+\stoptyping
+
+\stopsectionlevel

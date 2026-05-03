@@ -274,11 +274,7 @@ def _list_item_from_payload(payload: Any) -> list:
     _expect(isinstance(payload, list), 'List item payload must be a list.')
     blocks = []
     for item in payload:
-        block = _block_from_payload(item)
-        if isinstance(block, Paragraph) and item.get('t') == 'Plain':
-            blocks.append(Paragraph(list(block.inlines)))
-        else:
-            blocks.append(block)
+        blocks.append(_block_from_payload(item))
     return blocks
 
 
@@ -301,7 +297,7 @@ def _block_from_payload(payload: Any):
     tag = payload['t']
     content = payload.get('c')
     if tag in {'Para', 'Plain'}:
-        return Paragraph(_inlines_from_payload(content))
+        return Paragraph(_inlines_from_payload(content), is_plain=(tag == 'Plain'))
     if tag == 'Null':
         return Null()
     if tag == 'Header':

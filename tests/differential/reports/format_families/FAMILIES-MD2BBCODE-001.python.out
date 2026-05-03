@@ -1,0 +1,12 @@
+[h1]Heading[/h1]
+A paragraph.
+
+[list]
+[*]one
+[*]two
+[/list]
+A code block follows:
+
+[code]
+print(1)
+[/code]
