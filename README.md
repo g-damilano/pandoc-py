@@ -261,7 +261,7 @@ If a flag is missing from this table it is not yet accepted by
 | `--id-prefix` | ⚪ | Stored. |
 | `-T`/`--title-prefix` | ✅ | Wired into the template's `title-meta` variable. |
 | `-c`/`--css` | ✅ | Listed as `css` in the template context (HTML default template emits a `<link>` per item). |
-| `--reference-doc` | ⚪ | Stored. |
+| `--reference-doc` | ✅ | Implemented for `docx`, `odt`, `pptx`. After the writer emits the zip, styling parts are swapped in from the reference: docx replaces `word/styles.xml`, `word/numbering.xml`, `word/settings.xml`, `word/theme/theme1.xml`, and any `word/header*.xml` / `word/footer*.xml`; odt replaces `styles.xml` plus `Pictures/`; pptx replaces `ppt/slideMasters/*`, `ppt/slideLayouts/*`, `ppt/theme/*`, `ppt/notesSlides/*`. The body content is preserved from the regenerated output. Missing or unreadable reference docs log a warning and the original output is returned unchanged. |
 | `--split-level`/`--epub-chapter-level` | ⚪ | Stored. |
 | `--chunk-template` | ⚪ | Stored. |
 | `--epub-cover-image` | ⚪ | Stored. |
@@ -270,8 +270,8 @@ If a flag is missing from this table it is not yet accepted by
 | `--epub-embed-font` | ⚪ | Stored. |
 | `--epub-subdirectory` | ⚪ | Stored. |
 | `--ipynb-output` | ⚪ | Stored. |
-| `--pdf-engine` | ⚪ | Stored. |
-| `--pdf-engine-opt` | ⚪ | Stored. |
+| `--pdf-engine` | ✅ | When `-t pdf` (or `-o foo.pdf`) is requested, the document is written to an intermediate text format, written to a temp file, and the engine is invoked on it. Engine routing matches pandoc: `pdflatex` (default; alts `xelatex`/`lualatex`/`tectonic`/`latexmk`) for `latex`, `context`, `weasyprint` (alts `prince`/`wkhtmltopdf`/`pagedjs-cli`) for `html`, `groff`/`pdfroff` for `ms`, `typst` for `typst`. The engine choice can also imply the intermediate (e.g. `--pdf-engine weasyprint` switches to HTML). When the engine is not on `PATH`, a warning is logged and the intermediate text file is written instead so the user can run the engine manually. |
+| `--pdf-engine-opt` | ✅ | Each `--pdf-engine-opt=…` is appended to the engine's command line. Repeatable. |
 
 ### Citation rendering
 

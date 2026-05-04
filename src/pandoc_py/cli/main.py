@@ -401,6 +401,16 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.write('# pandoc_py bash completion\ncomplete -W "$(pandoc_py --list-input-formats; pandoc_py --list-output-formats)" pandoc_py\n')
         return 0
 
+    # If the user asked for PDF, we route through an intermediate
+    # writer and then invoke the PDF engine. We pick the intermediate
+    # before the main converter runs so the rest of the pipeline emits
+    # text the engine can consume.
+    pdf_intermediate: str | None = None
+    target_format = options.to_format
+    if target_format == 'pdf':
+        pdf_intermediate = _pick_pdf_intermediate(options)
+        target_format = pdf_intermediate
+
     # Conversion.
     try:
         from pandoc_py.io import get_reader, get_writer
@@ -447,15 +457,18 @@ def main(argv: list[str] | None = None) -> int:
             'extensions': list(options.to_extensions),
         })
         try:
-            writer = get_writer(options.to_format)
+            writer = get_writer(target_format)
             output = writer.write(document, opts)
         except TypeError:
             # Older callable writers don't accept WriteOptions directly.
-            output = write_document(document, options.to_format, standalone=options.standalone)
+            output = write_document(document, target_format, standalone=options.standalone)
 
         # Apply template if requested or standalone is asked for AND the
-        # writer didn't already emit a standalone document.
-        if options.template or (options.standalone and not isinstance(output, bytes)):
+        # writer didn't already emit a standalone document. When rendering
+        # a PDF we always wrap the intermediate in its standalone template
+        # because external engines need a complete document.
+        force_template = pdf_intermediate is not None
+        if options.template or (options.standalone and not isinstance(output, bytes)) or force_template:
             template_text = None
             if options.template:
                 try:
@@ -463,10 +476,45 @@ def main(argv: list[str] | None = None) -> int:
                 except OSError as exc:
                     _LOG.warning('Could not read template %s: %s', options.template, exc)
             if template_text is None:
-                template_text = get_default_template(options.to_format)
+                template_text = get_default_template(target_format)
             if template_text and not isinstance(output, bytes):
                 ctx = _build_template_context(options, output, document.meta)
                 output = render_template(template_text, ctx)
+
+        # --reference-doc post-processing for binary writers.
+        if options.reference_doc and isinstance(output, bytes) and target_format in {'docx', 'odt', 'pptx'}:
+            from pandoc_py.cli.reference_doc import apply_reference_doc
+            output = apply_reference_doc(output, options.reference_doc, target_format)
+
+        # PDF generation: hand the intermediate text to the engine.
+        if pdf_intermediate is not None:
+            from pandoc_py.cli.pdf_engine import run_pdf_engine, select_engine, is_engine_available
+            if isinstance(output, bytes):
+                _LOG.warning('PDF intermediate %s is binary; cannot route through an engine.', pdf_intermediate)
+                pdf_bytes = None
+            else:
+                spec, engine = select_engine(pdf_intermediate, options.pdf_engine)
+                if not is_engine_available(engine):
+                    _LOG.warning(
+                        'PDF engine %s is not on PATH. Install %s or pass '
+                        '--pdf-engine to choose another. Falling back to writing '
+                        'the intermediate %s output instead.',
+                        engine, engine, pdf_intermediate,
+                    )
+                    pdf_bytes = None
+                else:
+                    try:
+                        pdf_bytes = run_pdf_engine(
+                            output,
+                            intermediate_format=pdf_intermediate,
+                            engine=options.pdf_engine,
+                            engine_opts=options.pdf_engine_opts,
+                        )
+                    except RuntimeError as exc:
+                        sys.stderr.write(f'PDF engine error: {exc}\n')
+                        return 43
+            if pdf_bytes is not None:
+                output = pdf_bytes
 
         if options.dump_args:
             print(options.output_path or '-')
@@ -485,6 +533,25 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError as exc:
         sys.stderr.write(f'Input not found: {exc}\n')
         return 1
+
+
+def _pick_pdf_intermediate(options) -> str:
+    """Pick the intermediate writer for PDF output.
+
+    Pandoc's rule: the writer follows ``-t``; when the user requests
+    ``-t pdf`` directly, default to LaTeX, but allow the engine choice
+    to imply a different intermediate. We mirror that here.
+    """
+    engine = (options.pdf_engine or '').lower()
+    if engine in {'wkhtmltopdf', 'weasyprint', 'prince', 'pagedjs-cli'}:
+        return 'html'
+    if engine in {'groff', 'pdfroff'}:
+        return 'ms'
+    if engine == 'context':
+        return 'context'
+    if engine == 'typst':
+        return 'typst'
+    return 'latex'
 
 
 def _shift_heading_levels(document, delta: int):
