@@ -17,7 +17,7 @@ before relying on a particular flag.**
 >   constrained-slice level admitted in
 >   `trackers/CAPABILITY_MATRIX*.csv`, with oracle-backed differential
 >   reports archived under `tests/differential/reports/`.
-> * **CLI option-surface parity: ~70% (parsed) / ~35% (acted on)**.
+> * **CLI option-surface parity: ~70% (parsed) / ~45% (acted on)**.
 >   Every flag pandoc documents is accepted; many are stubs or no-ops
 >   today and clearly marked as such in the matrix below.
 > * **Markdown-extension parity: lexically accepted, semantically
@@ -222,7 +222,7 @@ If a flag is missing from this table it is not yet accepted by
 | `--toc-depth` | ⚪ | Stored. |
 | `--lof`/`--list-of-figures` | ⚪ | Stored. |
 | `--lot`/`--list-of-tables` | ⚪ | Stored. |
-| `--strip-comments` | ⚪ | Stored. |
+| `--strip-comments` | ✅ | Drops `<!--…-->` comments from raw HTML blocks and inlines via an AST pre-pass; format-agnostic. |
 | `--syntax-highlighting` | ⚪ | Stored. The constrained writers do not perform syntax highlighting. |
 | `--no-highlight` | ⚪ | Sets `syntax_highlighting='none'`. |
 | `--highlight-style` | ⚪ | Stored. |
@@ -243,7 +243,7 @@ If a flag is missing from this table it is not yet accepted by
 | `--embed-resources` | 🟡 | Stored on `WriteOptions.extra`. |
 | `--link-images` | ⚪ | Stored. |
 | `--html-q-tags` | ⚪ | Stored. |
-| `--ascii` | ⚪ | Stored. |
+| `--ascii` | ✅ | Re-encodes the writer's text output, replacing every non-ASCII codepoint with a numeric character reference (`&#xNNNN;`). Applied after the writer runs so format-specific escaping doesn't double-encode. Binary outputs are passed through unchanged. |
 | `--reference-links` | ⚪ | Stored. |
 | `--reference-location` | ⚪ | Stored. |
 | `--figure-caption-position` | ⚪ | Stored. |
@@ -251,23 +251,23 @@ If a flag is missing from this table it is not yet accepted by
 | `--markdown-headings` | ⚪ | Stored. |
 | `--list-tables` | ⚪ | Stored. |
 | `--top-level-division` | ⚪ | Stored. |
-| `-N`/`--number-sections` | ⚪ | Stored. |
+| `-N`/`--number-sections` | ✅ | Walks every Heading in the AST and prepends a hierarchical number (`1.`, `1.1.`, `1.1.1.`, etc.) to its inlines. Headings with the `unnumbered` class are skipped. `--number-offset=N[,N,…]` lets the first level-K heading start at offset+1. Works for every writer. |
 | `--number-offset` | ⚪ | Stored. |
 | `--listings` | ⚪ | Stored. |
 | `-i`/`--incremental` | ⚪ | Stored; slide writers do not yet honour incremental display. |
 | `--slide-level` | ⚪ | Stored. |
 | `--section-divs` | ⚪ | Stored. |
 | `--email-obfuscation` | ⚪ | Stored. |
-| `--id-prefix` | ⚪ | Stored. |
+| `--id-prefix` | ✅ | Prepends the prefix to every Heading's identifier in the AST. Headings without an explicit identifier first get the slug-from-text id (matching the HTML writer's auto-id rule), then the prefix is applied. |
 | `-T`/`--title-prefix` | ✅ | Wired into the template's `title-meta` variable. |
 | `-c`/`--css` | ✅ | Listed as `css` in the template context (HTML default template emits a `<link>` per item). |
 | `--reference-doc` | ✅ | Implemented for `docx`, `odt`, `pptx`. After the writer emits the zip, styling parts are swapped in from the reference: docx replaces `word/styles.xml`, `word/numbering.xml`, `word/settings.xml`, `word/theme/theme1.xml`, and any `word/header*.xml` / `word/footer*.xml`; odt replaces `styles.xml` plus `Pictures/`; pptx replaces `ppt/slideMasters/*`, `ppt/slideLayouts/*`, `ppt/theme/*`, `ppt/notesSlides/*`. The body content is preserved from the regenerated output. Missing or unreadable reference docs log a warning and the original output is returned unchanged. |
 | `--split-level`/`--epub-chapter-level` | ⚪ | Stored. |
 | `--chunk-template` | ⚪ | Stored. |
-| `--epub-cover-image` | ⚪ | Stored. |
+| `--epub-cover-image` | ✅ | After the EPUB zip is built, the cover image is added at `OEBPS/cover.<ext>`, a matching `cover.xhtml` page is generated, and `content.opf` is patched: a manifest entry with `properties="cover-image"` is injected, plus a spine `<itemref idref="cover"/>` so the cover appears first. Supported image MIME types: PNG, JPEG, GIF, SVG, WebP. |
 | `--epub-title-page` | ⚪ | Stored. |
 | `--epub-metadata` | ⚪ | Stored. |
-| `--epub-embed-font` | ⚪ | Stored. |
+| `--epub-embed-font` | ✅ | Each `--epub-embed-font path/to/font.ttf` is added to the EPUB at `OEBPS/fonts/<basename>`. Repeatable. Wire the font into your CSS via `@font-face { src: url("../fonts/font.ttf"); }`. |
 | `--epub-subdirectory` | ⚪ | Stored. |
 | `--ipynb-output` | ⚪ | Stored. |
 | `--pdf-engine` | ✅ | When `-t pdf` (or `-o foo.pdf`) is requested, the document is written to an intermediate text format, written to a temp file, and the engine is invoked on it. Engine routing matches pandoc: `pdflatex` (default; alts `xelatex`/`lualatex`/`tectonic`/`latexmk`) for `latex`, `context`, `weasyprint` (alts `prince`/`wkhtmltopdf`/`pagedjs-cli`) for `html`, `groff`/`pdfroff` for `ms`, `typst` for `typst`. The engine choice can also imply the intermediate (e.g. `--pdf-engine weasyprint` switches to HTML). When the engine is not on `PATH`, a warning is logged and the intermediate text file is written instead so the user can run the engine manually. |

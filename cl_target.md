@@ -1,0 +1,35 @@
+---
+doc_type: CL
+company_name: The LEGO Group
+company_team: Sustainable Products & Packaging Strategy
+company_location: Billund, Denmark / London, United Kingdom
+role_title: Director, Sustainable Materials Strategy — Technical Lead on Resins
+candidate_name: Giacomo Damilano
+candidate_email: giacomo.damilano@gmail.com
+candidate_phone: "+44 78 6165 3609"
+candidate_location: "London, United Kingdom"
+candidate_linkedin: "linkedin.com/in/gdamilano"
+candidate_github: "github.com/g-damilano"
+---
+
+Dear Hiring Team,
+
+I am writing to apply for the Director, Sustainable Materials Strategy — Technical Lead on Resins role at the LEGO Group. I am a polymer chemist and sustainability strategist with a decade of experience spanning materials science, circular-economy research, and multi-stakeholder innovation programme management — and someone who grew up with a rigid suitcase filled to the brim with LEGO bricks. I spent my childhood reinventing what those pieces could become, learning early that imagination is a discipline, and that the most interesting things are built one constraint at a time.
+
+I will be honest: I did not expect to find a role at the LEGO Group that corresponded to my profile. In hindsight, the logic is clear — regulatory momentum is pushing renewable and sustainable materials into every industry that uses plastics at scale, and consumer goods companies with genuine sustainability commitments need people who can navigate that terrain technically, commercially, and strategically. But the realisation that this cross-section existed here, at a company I have admired since childhood, was a genuine and welcome surprise. What the LEGO Group achieves — at scale, with a single humble material, for the cognitive and creative development of millions of people — is a kind of quiet genius I find genuinely moving. The idea of bringing my materials science background to help sustain that system for the next generation feels like work worth doing.
+
+My technical foundation is directly relevant to this role. My PhD at KU Leuven, completed as a Marie Sklodowska-Curie Fellow, focused on the synthesis and application of extractants and ionic liquids from renewable bio-based sources — covering feedstock diversity, process performance, and the connection between molecular design and industrial-scale viability. I synthesised gram-scale ammonium and imidazolium ionic liquids and deep eutectic solvents, characterised them across a full analytical battery, and worked within a 15-researcher European Training Network in collaboration with industrial partner Sasol on renewable petrochemicals. In my current role at Imperial College London I contribute to a UKRI-funded project on enhanced recycling of multilayer plastic packaging — working across materials characterisation, process feasibility, and cross-partner delivery — as well as to an ionic-liquid-based protein-recovery project with the University of Greenwich. This gives me a broad and grounded picture of both the feedstock landscape and the practical complexity of sustainable materials transitions in supply chains.
+
+I also bring a strong track record of translating technical complexity into strategic and commercial decisions. At RINA Consulting, I progressed from Analyst to Project Manager and led or coordinated more than fifteen innovation projects for industrial clients across chemicals, energy, and advanced materials. I liaised directly with clients' innovation managers and C-level stakeholders, prepared decision-ready analyses under real commercial and timing constraints, and analysed over 1,500 EU research and innovation opportunities mapped against client portfolios, technology trends, supply security, and cost realities. In open-innovation settings including the PITCCH network I managed challenges on plastic-free packaging and lignin valorisation and drove a preliminary collaboration between MetGen and Repsol on lignin-based materials. I moderated the PITCCH final event public panel and presented the SUSNANOFAB network at INL Summit 2022. The work required operating in regulatory and certification-adjacent territory, communicating difficult trade-offs with clarity, and representing programmes credibly to external audiences — a pattern this Director role continues at a larger scale.
+
+In my current research role I operate in practice as the de facto operations manager of the group: managing day-to-day laboratory logistics, purchasing, compliance, and the collective infrastructure of work in an environment where that structure did not previously exist. My supervision of researchers spans both dimensions. For Masters students I provide direct scientific guidance — setting direction, reviewing experimental choices, and stepping in fully when the principal supervisor is unavailable. For PhD researchers I contribute new angles and directions rather than primary supervision; the scientific ownership stays with them, but I bring external perspective that shapes where the work goes. Across the group more broadly, my role is operational: reducing friction, following up on blockers, managing interpersonal dynamics when needed, and making sure that the everyday conditions for good work are actually in place. I am aware that this is not equivalent to formal corporate line management at Director level; I raise it because it reflects the instinct I bring to any environment — towards making things function, not just towards the intellectual work itself.
+
+Where I want to be direct: mass balance accounting systems and ISCC PLUS certification frameworks are areas I have engaged with at the programme and regulatory-analysis level rather than as a direct practitioner. I understand the architecture of these frameworks — how chain-of-custody models interact with supply chain traceability, how certification schemes are structured, and what the commercial and credibility stakes are — and I am genuinely committed to deepening this as a technical specialism. I raise it not as a disqualifying gap but because intellectual honesty is part of how I work, and because a Director-level technical lead at LEGO should bring that clarity into every internal and external conversation.
+
+I am, at my core, a realistic idealist. I think in terms of what the ideal outcome looks like — clearly, specifically, without diluting it prematurely — and I am equally clear-eyed about the constraints that define the realistic path to get there. The gap between those two things is not a reason to lower the ambition; it is the actual work. That orientation feels well-suited to what this role requires: translating genuine sustainability ambition into decisions that are also commercially real, technically honest, and durable at scale. The LEGO Group is one of the few organisations where I believe that tension is being held with genuine seriousness at every level. I would be proud to contribute to it.
+
+Thank you for your consideration. I am based in London and available to discuss the role at your convenience.
+
+Yours sincerely,
+
+**Giacomo Damilano**

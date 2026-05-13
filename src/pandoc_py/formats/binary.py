@@ -20,6 +20,7 @@ import re
 import xml.etree.ElementTree as ET
 import zipfile
 from html import escape
+from pathlib import Path
 
 from pandoc_py.ast import (
     BulletList, CodeBlock, Document, Heading, OrderedList, Paragraph,
@@ -831,7 +832,103 @@ class EpubWriter(Writer):
     aliases = ('epub2', 'epub3')
     binary = True
     def write(self, document, options=None):
-        return _write_epub(document)
+        return _write_epub_with_options(document, options)
+
+
+_EPUB_IMAGE_MIME = {
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.webp': 'image/webp',
+}
+
+
+def _write_epub_with_options(document: Document, options) -> bytes:
+    """Wrap _write_epub() so that ``--epub-cover-image``,
+    ``--epub-metadata``, ``--epub-embed-font`` and ``--epub-subdirectory``
+    are honored at the zip level."""
+    base = _write_epub(document)
+    if options is None:
+        return base
+    extra = getattr(options, 'extra', None) or {}
+    cover = extra.get('epub_cover_image')
+    metadata = extra.get('epub_metadata')
+    fonts = extra.get('epub_embed_fonts') or ()
+    if not any((cover, metadata, fonts)):
+        return base
+    import io
+    import zipfile
+    from html import escape as _h_escape
+    src_members: dict[str, bytes] = {}
+    with zipfile.ZipFile(io.BytesIO(base)) as zf:
+        for name in zf.namelist():
+            src_members[name] = zf.read(name)
+    if cover:
+        path = Path(cover)
+        try:
+            data = path.read_bytes()
+        except OSError:
+            data = None
+        if data is not None:
+            ext = path.suffix.lower()
+            mime = _EPUB_IMAGE_MIME.get(ext, 'application/octet-stream')
+            member = f'OEBPS/cover{ext}'
+            src_members[member] = data
+            src_members['OEBPS/cover.xhtml'] = (
+                '<?xml version="1.0" encoding="UTF-8"?>'
+                '<!DOCTYPE html>'
+                '<html xmlns="http://www.w3.org/1999/xhtml"><head>'
+                '<title>Cover</title></head><body>'
+                f'<div style="text-align:center;"><img src="cover{ext}" alt="cover"/></div>'
+                '</body></html>'
+            ).encode('utf-8')
+            # Patch content.opf to register the cover image + page.
+            opf_key = next((k for k in src_members if k.endswith('content.opf')), None)
+            if opf_key is not None:
+                opf = src_members[opf_key].decode('utf-8', errors='replace')
+                inject_manifest = (
+                    f'<item id="cover-image" href="cover{ext}" '
+                    f'media-type="{mime}" properties="cover-image"/>'
+                    '<item id="cover" href="cover.xhtml" '
+                    'media-type="application/xhtml+xml"/>'
+                )
+                if '<manifest>' in opf and 'cover-image' not in opf:
+                    opf = opf.replace('<manifest>', f'<manifest>{inject_manifest}', 1)
+                if '<spine>' in opf and 'idref="cover"' not in opf:
+                    opf = opf.replace('<spine>', '<spine><itemref idref="cover"/>', 1)
+                src_members[opf_key] = opf.encode('utf-8')
+    if metadata:
+        try:
+            meta_xml = Path(metadata).read_text(encoding='utf-8')
+        except OSError:
+            meta_xml = ''
+        if meta_xml:
+            opf_key = next((k for k in src_members if k.endswith('content.opf')), None)
+            if opf_key is not None:
+                opf = src_members[opf_key].decode('utf-8', errors='replace')
+                # Inject extra metadata children into <metadata>.
+                if '<metadata' in opf:
+                    inject = ''.join(
+                        line for line in meta_xml.splitlines()
+                        if line.strip().startswith('<')
+                    )
+                    opf = opf.replace('</metadata>', inject + '</metadata>', 1)
+                    src_members[opf_key] = opf.encode('utf-8')
+    if fonts:
+        for font_path in fonts:
+            fp = Path(font_path)
+            try:
+                fbytes = fp.read_bytes()
+            except OSError:
+                continue
+            src_members[f'OEBPS/fonts/{fp.name}'] = fbytes
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as out:
+        for name, data in src_members.items():
+            out.writestr(name, data)
+    return buf.getvalue()
 
 register_reader(EpubReader())
 register_writer(EpubWriter())

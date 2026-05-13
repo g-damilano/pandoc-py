@@ -425,6 +425,7 @@ def main(argv: list[str] | None = None) -> int:
             document = _shift_heading_levels(document, options.base_header_level - 1)
 
         document = _apply_filters(document, options)
+        document = _apply_ast_transforms(document, options)
 
         # Build the writer output (always to a string/bytes; templates
         # are applied separately when --standalone is set).
@@ -462,6 +463,9 @@ def main(argv: list[str] | None = None) -> int:
         except TypeError:
             # Older callable writers don't accept WriteOptions directly.
             output = write_document(document, target_format, standalone=options.standalone)
+
+        if options.ascii:
+            output = _ascii_only_output(output)
 
         # Apply template if requested or standalone is asked for AND the
         # writer didn't already emit a standalone document. When rendering
@@ -533,6 +537,146 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError as exc:
         sys.stderr.write(f'Input not found: {exc}\n')
         return 1
+
+
+def _apply_ast_transforms(document, options):
+    """Apply CLI flags whose semantics naturally live on the AST.
+
+    Most pandoc options ultimately tweak the document before serialisation.
+    Implementing them at the AST level means every writer benefits without
+    per-format special-casing.
+
+    Currently implemented:
+
+    * ``--number-sections`` / ``-N`` — prepends ``1.2.3 `` numbers to every
+      Heading. ``--number-offset`` lets you start at a non-zero index.
+    * ``--strip-comments`` — drops ``<!--…-->`` HTML comments from raw
+      blocks and inlines.
+    * ``--id-prefix`` — prepends a string to every Heading's identifier
+      so generated fragments don't collide when included in a parent page.
+    * ``--ascii`` — handled at output level (see :func:`_ascii_only_output`),
+      not in the AST pass, so the writer's escaping doesn't double-encode
+      the numeric character references.
+    """
+    if options.number_sections:
+        document = _number_sections(document, options.number_offset)
+    if options.strip_comments:
+        document = _strip_html_comments(document)
+    if options.id_prefix:
+        document = _apply_id_prefix(document, options.id_prefix)
+    # ``--ascii`` is applied to the writer *output*, not the AST, so it
+    # converts emitted text rather than escape-trampled inlines. See
+    # _ascii_only_output() below.
+    return document
+
+
+def _ascii_only_output(output: str | bytes) -> str | bytes:
+    """Re-encode the writer's text output so every non-ASCII codepoint
+    becomes a numeric character reference. Binary output is unchanged."""
+    if isinstance(output, bytes):
+        return output
+    return ''.join(c if ord(c) < 128 else f'&#x{ord(c):X};' for c in output)
+
+
+def _number_sections(document, offset: tuple[int, ...]):
+    """Walk top-level headings and prepend hierarchical numbers.
+
+    Headings with the ``unnumbered`` class are skipped.
+    """
+    from pandoc_py.ast import Document, Heading, Space, Str
+    counters = [0] * 6
+    if offset:
+        for i, val in enumerate(offset[:6]):
+            counters[i] = val
+    new_blocks = []
+    for block in document.blocks:
+        if isinstance(block, Heading) and 'unnumbered' not in block.attr.classes:
+            level = max(1, min(block.level, 6))
+            counters[level - 1] += 1
+            for j in range(level, 6):
+                counters[j] = 0
+            number = '.'.join(str(c) for c in counters[:level] if c) + '.'
+            prefixed = [Str(number), Space(), *block.inlines]
+            new_blocks.append(Heading(level=block.level, inlines=prefixed, attr=block.attr))
+        else:
+            new_blocks.append(block)
+    return Document(blocks=new_blocks, meta=dict(document.meta), source_format=document.source_format)
+
+
+def _strip_html_comments(document):
+    """Remove ``<!--…-->`` HTML comments from raw blocks and inlines."""
+    import re as _re
+    from pandoc_py.ast import Document, RawBlock, RawInline
+
+    _COMMENT_RE = _re.compile(r'<!--.*?-->', _re.DOTALL)
+
+    def strip(text: str) -> str:
+        return _COMMENT_RE.sub('', text)
+
+    def walk_inline(node):
+        if isinstance(node, RawInline) and node.format == 'html':
+            new_text = strip(node.text)
+            return RawInline(format='html', text=new_text)
+        if hasattr(node, 'inlines'):
+            return type(node)(**{
+                **{f: getattr(node, f) for f in node.__dataclass_fields__},
+                'inlines': [walk_inline(i) for i in node.inlines],
+            })
+        return node
+
+    def walk_block(block):
+        if isinstance(block, RawBlock) and block.format == 'html':
+            return RawBlock(format='html', text=strip(block.text))
+        if hasattr(block, 'inlines'):
+            return type(block)(**{
+                **{f: getattr(block, f) for f in block.__dataclass_fields__},
+                'inlines': [walk_inline(i) for i in block.inlines],
+            })
+        if hasattr(block, 'blocks'):
+            return type(block)(**{
+                **{f: getattr(block, f) for f in block.__dataclass_fields__},
+                'blocks': [walk_block(b) for b in block.blocks],
+            })
+        return block
+
+    new_blocks = [walk_block(b) for b in document.blocks]
+    return Document(blocks=new_blocks, meta=dict(document.meta), source_format=document.source_format)
+
+
+def _apply_id_prefix(document, prefix: str):
+    """Prepend ``prefix`` to every Heading identifier on the document.
+
+    Headings whose attr.identifier is empty get a slugified id first so
+    the prefix actually shows up downstream (the HTML writer otherwise
+    re-slugifies the bare heading text and discards our hint).
+    """
+    from pandoc_py.ast import Attr, Document, Heading
+    from pandoc_py.formats._common import inlines_to_plain, slugify_heading
+
+    def walk_block(block):
+        if isinstance(block, Heading):
+            ident = block.attr.identifier
+            if not ident:
+                ident = slugify_heading(inlines_to_plain(block.inlines))
+            new_attr = Attr(
+                identifier=prefix + ident,
+                classes=list(block.attr.classes),
+                attributes=list(block.attr.attributes),
+            )
+            return Heading(level=block.level, inlines=block.inlines, attr=new_attr,
+                           **({'is_plain': block.is_plain} if hasattr(block, 'is_plain') else {}))
+        attr = getattr(block, 'attr', None)
+        if isinstance(attr, Attr) and attr.identifier:
+            new_attr = Attr(identifier=prefix + attr.identifier,
+                            classes=list(attr.classes), attributes=list(attr.attributes))
+            return type(block)(**{
+                **{f: getattr(block, f) for f in block.__dataclass_fields__},
+                'attr': new_attr,
+            })
+        return block
+
+    new_blocks = [walk_block(b) for b in document.blocks]
+    return Document(blocks=new_blocks, meta=dict(document.meta), source_format=document.source_format)
 
 
 def _pick_pdf_intermediate(options) -> str:
