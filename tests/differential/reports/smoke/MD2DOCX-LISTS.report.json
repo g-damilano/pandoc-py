@@ -1,0 +1,43 @@
+{
+  "fixture_id": "MD2DOCX-LISTS",
+  "input_format": "markdown",
+  "output_format": "docx",
+  "comparison_level": "roundtrip_binary_docx_via_oracle_reader",
+  "oracle_command": [
+    "C:\\Program Files\\Pandoc\\pandoc.exe",
+    "C:\\Users\\giaco\\AppData\\Local\\Temp\\lists.md",
+    "-f",
+    "markdown",
+    "-t",
+    "docx",
+    "-o",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\smoke\\MD2DOCX-LISTS.oracle.docx"
+  ],
+  "python_command": [
+    "C:\\Python314\\python.exe",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\scripts\\run_python_cli.py",
+    "C:\\Users\\giaco\\AppData\\Local\\Temp\\lists.md",
+    "--from",
+    "markdown",
+    "--to",
+    "docx",
+    "-o",
+    "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\smoke\\MD2DOCX-LISTS.python.docx"
+  ],
+  "oracle_version": "pandoc 3.8.2",
+  "python_version": "pandoc_py 0.0.58",
+  "oracle_exit_code": 0,
+  "python_exit_code": 0,
+  "status": "pass",
+  "summary": "Binary docx round-trip JSON match (normalized).",
+  "oracle_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\smoke\\MD2DOCX-LISTS.oracle.out",
+  "python_stdout_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\smoke\\MD2DOCX-LISTS.python.out",
+  "oracle_stderr_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\smoke\\MD2DOCX-LISTS.oracle.err",
+  "python_stderr_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\smoke\\MD2DOCX-LISTS.python.err",
+  "oracle_binary_reparse_exit_code": 0,
+  "python_binary_reparse_exit_code": 0,
+  "oracle_binary_reparse_error": "",
+  "python_binary_reparse_error": "",
+  "oracle_binary_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\smoke\\MD2DOCX-LISTS.oracle.docx",
+  "python_binary_path": "C:\\Users\\giaco\\Documents\\GitHub\\pandoc-py\\.claude\\worktrees\\modest-blackburn-a0ec49\\tests\\differential\\reports\\smoke\\MD2DOCX-LISTS.python.docx"
+}

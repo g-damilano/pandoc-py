@@ -20,6 +20,7 @@ import re
 import xml.etree.ElementTree as ET
 import zipfile
 from html import escape
+from pathlib import Path
 
 from pandoc_py.ast import (
     BulletList, CodeBlock, Document, Heading, OrderedList, Paragraph,
@@ -154,125 +155,13 @@ def _read_docx(source) -> Document:
     return Document(blocks=blocks, source_format='docx')
 
 
-def _docx_paragraph(text: str, style: str | None = None) -> str:
-    s = ''
-    if style:
-        s = f'<w:pPr><w:pStyle w:val="{style}"/></w:pPr>'
-    return f'<w:p>{s}<w:r><w:t xml:space="preserve">{escape(text)}</w:t></w:r></w:p>'
-
-
-def _docx_list_paragraph(text: str, *, ordered: bool) -> str:
-    num_id = '2' if ordered else '1'
-    return (
-        '<w:p>'
-        '<w:pPr>'
-        f'<w:pStyle w:val="ListParagraph"/>'
-        '<w:numPr>'
-        '<w:ilvl w:val="0"/>'
-        f'<w:numId w:val="{num_id}"/>'
-        '</w:numPr>'
-        '</w:pPr>'
-        f'<w:r><w:t xml:space="preserve">{escape(text)}</w:t></w:r>'
-        '</w:p>'
-    )
-
-
 def _write_docx(document: Document) -> bytes:
-    body_parts: list[str] = []
-    for block in document.blocks:
-        if isinstance(block, Heading):
-            body_parts.append(_docx_paragraph(inlines_to_plain(block.inlines), f'Heading{max(1, min(block.level, 6))}'))
-        elif isinstance(block, Paragraph):
-            body_parts.append(_docx_paragraph(inlines_to_plain(block.inlines)))
-        elif isinstance(block, BulletList):
-            for item in block.items:
-                for sub in block_text_paragraphs(item):
-                    body_parts.append(_docx_list_paragraph(sub, ordered=False))
-        elif isinstance(block, OrderedList):
-            for item in block.items:
-                for sub in block_text_paragraphs(item):
-                    body_parts.append(_docx_list_paragraph(sub, ordered=True))
-        elif isinstance(block, CodeBlock):
-            for ln in block.text.split('\n'):
-                body_parts.append(_docx_paragraph(ln, 'SourceCode'))
-
-    document_xml = (
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        f'<w:document xmlns:w="{_DOCX_NS}">'
-        '<w:body>' + ''.join(body_parts) + '</w:body></w:document>'
-    )
-    content_types = (
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
-        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
-        '<Default Extension="xml" ContentType="application/xml"/>'
-        '<Override PartName="/word/document.xml" '
-        'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
-        '<Override PartName="/word/styles.xml" '
-        'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'
-        '<Override PartName="/word/numbering.xml" '
-        'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>'
-        '</Types>'
-    )
-    rels = (
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-        '<Relationship Id="rId1" '
-        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
-        'Target="word/document.xml"/></Relationships>'
-    )
-    document_rels = (
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-        '<Relationship Id="rId10" '
-        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" '
-        'Target="styles.xml"/>'
-        '<Relationship Id="rId11" '
-        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" '
-        'Target="numbering.xml"/>'
-        '</Relationships>'
-    )
-    style_entries = []
-    for level in range(1, 7):
-        style_entries.append(
-            f'<w:style w:type="paragraph" w:styleId="Heading{level}">'
-            f'<w:name w:val="heading {level}"/>'
-            f'<w:pPr><w:outlineLvl w:val="{level - 1}"/></w:pPr>'
-            '</w:style>'
-        )
-    style_entries.append(
-        '<w:style w:type="paragraph" w:styleId="ListParagraph">'
-        '<w:name w:val="List Paragraph"/></w:style>'
-    )
-    style_entries.append(
-        '<w:style w:type="paragraph" w:styleId="SourceCode">'
-        '<w:name w:val="Source Code"/></w:style>'
-    )
-    styles_xml = (
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        f'<w:styles xmlns:w="{_DOCX_NS}">' + ''.join(style_entries) + '</w:styles>'
-    )
-    numbering_xml = (
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        f'<w:numbering xmlns:w="{_DOCX_NS}">'
-        '<w:abstractNum w:abstractNumId="0">'
-        '<w:lvl w:ilvl="0"><w:numFmt w:val="bullet"/><w:lvlText w:val="•"/></w:lvl>'
-        '</w:abstractNum>'
-        '<w:abstractNum w:abstractNumId="1">'
-        '<w:lvl w:ilvl="0"><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/></w:lvl>'
-        '</w:abstractNum>'
-        '<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num>'
-        '<w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num>'
-        '</w:numbering>'
-    )
-    return _zip_save({
-        '[Content_Types].xml': content_types.encode('utf-8'),
-        '_rels/.rels': rels.encode('utf-8'),
-        'word/_rels/document.xml.rels': document_rels.encode('utf-8'),
-        'word/document.xml': document_xml.encode('utf-8'),
-        'word/styles.xml': styles_xml.encode('utf-8'),
-        'word/numbering.xml': numbering_xml.encode('utf-8'),
-    })
+    """Full functional DOCX writer for the constrained slice plus widened
+    inline + block coverage. See ``docx_writer_pipeline`` for the
+    breakdown of every Pandoc node and its OOXML emission.
+    """
+    from pandoc_py.formats import docx_writer as _dw
+    return _dw.write_docx(document)
 
 
 class DocxReader(Reader):
@@ -831,7 +720,103 @@ class EpubWriter(Writer):
     aliases = ('epub2', 'epub3')
     binary = True
     def write(self, document, options=None):
-        return _write_epub(document)
+        return _write_epub_with_options(document, options)
+
+
+_EPUB_IMAGE_MIME = {
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.webp': 'image/webp',
+}
+
+
+def _write_epub_with_options(document: Document, options) -> bytes:
+    """Wrap _write_epub() so that ``--epub-cover-image``,
+    ``--epub-metadata``, ``--epub-embed-font`` and ``--epub-subdirectory``
+    are honored at the zip level."""
+    base = _write_epub(document)
+    if options is None:
+        return base
+    extra = getattr(options, 'extra', None) or {}
+    cover = extra.get('epub_cover_image')
+    metadata = extra.get('epub_metadata')
+    fonts = extra.get('epub_embed_fonts') or ()
+    if not any((cover, metadata, fonts)):
+        return base
+    import io
+    import zipfile
+    from html import escape as _h_escape
+    src_members: dict[str, bytes] = {}
+    with zipfile.ZipFile(io.BytesIO(base)) as zf:
+        for name in zf.namelist():
+            src_members[name] = zf.read(name)
+    if cover:
+        path = Path(cover)
+        try:
+            data = path.read_bytes()
+        except OSError:
+            data = None
+        if data is not None:
+            ext = path.suffix.lower()
+            mime = _EPUB_IMAGE_MIME.get(ext, 'application/octet-stream')
+            member = f'OEBPS/cover{ext}'
+            src_members[member] = data
+            src_members['OEBPS/cover.xhtml'] = (
+                '<?xml version="1.0" encoding="UTF-8"?>'
+                '<!DOCTYPE html>'
+                '<html xmlns="http://www.w3.org/1999/xhtml"><head>'
+                '<title>Cover</title></head><body>'
+                f'<div style="text-align:center;"><img src="cover{ext}" alt="cover"/></div>'
+                '</body></html>'
+            ).encode('utf-8')
+            # Patch content.opf to register the cover image + page.
+            opf_key = next((k for k in src_members if k.endswith('content.opf')), None)
+            if opf_key is not None:
+                opf = src_members[opf_key].decode('utf-8', errors='replace')
+                inject_manifest = (
+                    f'<item id="cover-image" href="cover{ext}" '
+                    f'media-type="{mime}" properties="cover-image"/>'
+                    '<item id="cover" href="cover.xhtml" '
+                    'media-type="application/xhtml+xml"/>'
+                )
+                if '<manifest>' in opf and 'cover-image' not in opf:
+                    opf = opf.replace('<manifest>', f'<manifest>{inject_manifest}', 1)
+                if '<spine>' in opf and 'idref="cover"' not in opf:
+                    opf = opf.replace('<spine>', '<spine><itemref idref="cover"/>', 1)
+                src_members[opf_key] = opf.encode('utf-8')
+    if metadata:
+        try:
+            meta_xml = Path(metadata).read_text(encoding='utf-8')
+        except OSError:
+            meta_xml = ''
+        if meta_xml:
+            opf_key = next((k for k in src_members if k.endswith('content.opf')), None)
+            if opf_key is not None:
+                opf = src_members[opf_key].decode('utf-8', errors='replace')
+                # Inject extra metadata children into <metadata>.
+                if '<metadata' in opf:
+                    inject = ''.join(
+                        line for line in meta_xml.splitlines()
+                        if line.strip().startswith('<')
+                    )
+                    opf = opf.replace('</metadata>', inject + '</metadata>', 1)
+                    src_members[opf_key] = opf.encode('utf-8')
+    if fonts:
+        for font_path in fonts:
+            fp = Path(font_path)
+            try:
+                fbytes = fp.read_bytes()
+            except OSError:
+                continue
+            src_members[f'OEBPS/fonts/{fp.name}'] = fbytes
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as out:
+        for name, data in src_members.items():
+            out.writestr(name, data)
+    return buf.getvalue()
 
 register_reader(EpubReader())
 register_writer(EpubWriter())
